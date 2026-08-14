@@ -62,6 +62,7 @@ flutter:
 
   assets:
     - assets/logo/MECO TECHNOLOGIES PR-Photoroom.png
+    - assets/icon/2a902826-af50-48d0-8d7b-ecb56e91ff4f.png
 
 # ============================================================
 # MECO LAUNCHER ICON
@@ -84,21 +85,13 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
+  remove_alpha_ios: true
 
-  # Original Meco launcher artwork
+  # Premium dark-background Meco globe app icon
   image_path: "assets/icon/2a902826-af50-48d0-8d7b-ecb56e91ff4f.png"
 
-  # Android adaptive icon foreground
+  # Android adaptive icon — background matches icon's dark border colour
+  adaptive_icon_background: "#1A1D23"
   adaptive_icon_foreground: "assets/icon/2a902826-af50-48d0-8d7b-ecb56e91ff4f.png"
-
-  # IMPORTANT:
-  # Do not use the previous dark/white background here.
-  #
-  # The previous configuration:
-  # adaptive_icon_background: "#161C22"
-  #
-  # created an artificial background behind the logo.
-  #
-  # Keep the launcher artwork transparent wherever supported.
 
   min_sdk_android: 21

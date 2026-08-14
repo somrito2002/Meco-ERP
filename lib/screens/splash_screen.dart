@@ -4,6 +4,7 @@ import '../login.dart';
 import '../widgets/particle_logo_reveal.dart';
 
 /// Path to the original uploaded Meco logo.
+/// Path to the transparent Meco globe used in particle reveal & login.
 const String kMecoLogoAsset = 'assets/logo/MECO TECHNOLOGIES PR-Photoroom.png';
 
 /// Shows the particle-reveal splash, then hands off to the login screen
