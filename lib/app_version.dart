@@ -38,10 +38,14 @@ class AppVersion {
     return '${match.group(1)}.${match.group(2)}.${match.group(3)}';
   }
 
+  static String? _cachedSemanticVersion;
+
   /// The installed application's `MAJOR.MINOR.PATCH` version, or null when
   /// the platform metadata is unavailable or not valid SemVer.
   static Future<String?> installedSemanticVersion() async {
+    if (_cachedSemanticVersion != null) return _cachedSemanticVersion;
     final PackageInfo info = await PackageInfo.fromPlatform();
-    return semanticFromRaw(info.version);
+    _cachedSemanticVersion = semanticFromRaw(info.version);
+    return _cachedSemanticVersion;
   }
 }

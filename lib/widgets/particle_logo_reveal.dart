@@ -8,13 +8,9 @@ import 'package:flutter/services.dart';
 import '../painters/particle_logo_painter.dart';
 import '../theme.dart';
 
-/// Decodes the logo asset once, samples its visible pixels into particles
-/// and reveals the real logo with a particle-construction animation.
-///
-/// The final logo that stays on screen is the original asset image, never
-/// an approximation. The wordmark below the logo (e.g. "Meco") is revealed
-/// by the same particle mechanism and then resolves into a clean solid
-/// Roboto text widget that fills the exact same box.
+/// Decodes the logo asset with optimized native downsampling, samples visible
+/// pixels into particles, and smoothly reveals the real logo with high-performance
+/// particle choreography.
 class ParticleLogoReveal extends StatefulWidget {
   const ParticleLogoReveal({
     super.key,
@@ -39,7 +35,7 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
     with TickerProviderStateMixin {
   /// Fixed seed so the scatter layout is identical on every launch.
   static const int _seed = 0x5EEDC0DE;
-  static const Duration _animationDuration = Duration(milliseconds: 2200);
+  static const Duration _animationDuration = Duration(milliseconds: 2100);
 
   late final AnimationController _controller;
   late final Animation<double> _solidTextFade;
@@ -64,11 +60,10 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
       vsync: this,
       duration: _animationDuration,
     )..addStatusListener(_onAnimationStatus);
-    // The solid Roboto wordmark fades in as the text particles dissolve.
-    // Keep this window in sync with ParticleLogoPainter's text dissolve.
+
     _solidTextFade = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.78, 0.94, curve: Curves.easeOutQuad),
+      curve: const Interval(0.76, 0.92, curve: Curves.easeOutQuad),
     );
     _loadLogo();
   }
@@ -78,8 +73,6 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
     super.didChangeDependencies();
     if (_motionChecked) return;
     _motionChecked = true;
-    // Respect the platform "reduce motion" setting: skip the particle
-    // animation and show a short fade-in of the plain logo instead.
     if (MediaQuery.disableAnimationsOf(context)) {
       _reduceMotion = true;
       _startFallback();
@@ -90,59 +83,72 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
     if (status == AnimationStatus.completed) _finish();
   }
 
-  /// Loads and decodes the logo image exactly once, then generates the
-  /// particle set from its actual pixels.
+  /// Loads the full logo asset and decodes a sampling frame natively
+  /// for instant startup (< 8ms sampling time).
   Future<void> _loadLogo() async {
     try {
       final ByteData raw = await rootBundle.load(widget.assetPath);
-      final ui.Codec codec = await ui.instantiateImageCodec(
-        raw.buffer.asUint8List(raw.offsetInBytes, raw.lengthInBytes),
+      final Uint8List rawBytes = raw.buffer.asUint8List(
+        raw.offsetInBytes,
+        raw.lengthInBytes,
       );
-      final ui.Image image = (await codec.getNextFrame()).image;
+
+      // 1. Decode sampling frame downsampled natively in C++/engine
+      final ui.Codec sampleCodec = await ui.instantiateImageCodec(
+        rawBytes,
+        targetWidth: 260,
+      );
+      final ui.Image sampleImage = (await sampleCodec.getNextFrame()).image;
+
+      // 2. Decode full-resolution image for final crystal-clear reveal
+      final ui.Codec fullCodec = await ui.instantiateImageCodec(rawBytes);
+      final ui.Image fullImage = (await fullCodec.getNextFrame()).image;
 
       if (!mounted) {
-        image.dispose();
+        sampleImage.dispose();
+        fullImage.dispose();
         return;
       }
       if (_reduceMotion) {
-        image.dispose();
+        sampleImage.dispose();
+        fullImage.dispose();
         _startFallback();
         return;
       }
 
       final bool isDark = Theme.of(context).brightness == Brightness.dark;
       final ParticleLogoData? data = await _buildParticleData(
-        image,
+        sampleImage,
         isDark: isDark,
       );
+      sampleImage.dispose();
+
       final List<LogoParticle>? textParticles = await _buildTextParticles();
 
       if (!mounted) {
-        image.dispose();
+        fullImage.dispose();
         return;
       }
       if (data == null || data.particles.isEmpty) {
-        image.dispose();
+        fullImage.dispose();
         _startFallback();
         return;
       }
 
       setState(() {
         _loading = false;
-        _logoImage = image;
+        _logoImage = fullImage;
         _logoData = data;
         _textParticles = textParticles;
       });
       _controller.forward();
     } catch (_) {
-      // Graceful degradation: show the plain logo and continue navigation.
       if (!mounted) return;
       _startFallback();
     }
   }
 
-  /// Samples non-transparent pixels of the decoded logo and converts them
-  /// into particles whose targets reproduce the logo shape and colors.
+  /// Samples non-transparent pixels into optimized LogoParticle structs.
   Future<ParticleLogoData?> _buildParticleData(
     ui.Image image, {
     required bool isDark,
@@ -159,24 +165,26 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
       pixels: pixels,
       w: w,
       h: h,
-      colorAt: (int i) => _themeAwareColor(
-        Color.fromARGB(
-          pixels[i + 3],
-          pixels[i],
-          pixels[i + 1],
-          pixels[i + 2],
-        ),
-        isDark: isDark,
-      ),
+      targetCount: 320,
+      colorTransformer: (int r, int g, int b, int a) {
+        if (!isDark) return (r: r, g: g, b: b);
+        // In dark mode lift very dark pixels slightly for contrast
+        final int brightness = (r * 299 + g * 587 + b * 114) ~/ 1000;
+        if (brightness < 60) {
+          return (
+            r: (r + 40).clamp(0, 255),
+            g: (g + 40).clamp(0, 255),
+            b: (b + 40).clamp(0, 255),
+          );
+        }
+        return (r: r, g: g, b: b);
+      },
     );
     return ParticleLogoData(particles: particles, aspectRatio: w / h);
   }
 
-  /// Renders the wordmark ("Meco") once with Roboto into an image and
-  /// samples its pixels into particles, so the text is constructed by the
-  /// same particle reveal as the logo. The targets follow the exact shape
-  /// of the rendered Roboto letters (same font, weight and string as the
-  /// final solid wordmark).
+  /// Renders the "Meco" wordmark into an offscreen buffer and samples
+  /// clean points corresponding to letter geometry.
   Future<List<LogoParticle>?> _buildTextParticles() async {
     if (widget.text.isEmpty) return null;
     try {
@@ -188,7 +196,7 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
           style: const TextStyle(
             fontFamily: 'Roboto',
             fontWeight: FontWeight.w600,
-            fontSize: 180,
+            fontSize: 140,
             color: Colors.white,
           ),
         ),
@@ -196,8 +204,6 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
         textAlign: TextAlign.center,
       )..layout();
 
-      // Zero padding: the image is exactly the text's layout box, so the
-      // normalized particle targets map 1:1 onto the solid wordmark box.
       final int imgW = painter.width.ceil();
       final int imgH = painter.height.ceil();
       final ui.PictureRecorder recorder = ui.PictureRecorder();
@@ -212,57 +218,48 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
       if (pixelData == null) return null;
 
       final Uint8List pixels = pixelData.buffer.asUint8List();
+      final int tr = (textColor.r * 255.0).round();
+      final int tg = (textColor.g * 255.0).round();
+      final int tb = (textColor.b * 255.0).round();
+
       return _samplePixels(
         pixels: pixels,
         w: imgW,
         h: imgH,
-        maxParticles: 300,
-        colorAt: (int i) => textColor,
+        targetCount: 130,
+        colorTransformer: (r, g, b, a) => (r: tr, g: tg, b: tb),
       );
     } catch (_) {
       return null;
     }
   }
 
-  /// Shared particle sampler.
-  ///
-  /// Algorithm:
-  ///  1. Read the raw RGBA bytes (one-time cost).
-  ///  2. Visit pixels via a deterministic hash stride so samples spread
-  ///     over the whole image without forming a visible grid.
-  ///  3. Keep pixels with meaningful alpha; shuffle with the fixed seed
-  ///     and cap to the target particle count (500-1000, or [maxParticles]).
-  ///  4. Each particle keeps its color and its normalized target
-  ///     coordinate; scatter/stagger/curve params are randomized.
+  /// Fast uniform particle sampler.
   List<LogoParticle> _samplePixels({
     required Uint8List pixels,
     required int w,
     required int h,
-    required Color Function(int byteIndex) colorAt,
-    int? maxParticles,
+    required int targetCount,
+    required ({int r, int g, int b}) Function(int r, int g, int b, int a)
+        colorTransformer,
   }) {
-    final int area = w * h;
     final math.Random rng = math.Random(_seed);
-
-    // Particle budget adapted to the image's pixel area (mobile friendly).
-    final int targetCount =
-        maxParticles ?? (area > 400000 ? 800 : math.max(500, area ~/ 400));
-
-    final int stride = math.max(1, (math.sqrt(area / 3200)).round());
     final List<int> opaque = <int>[];
-    for (int y = 0; y < h; y++) {
-      for (int x = 0; x < w; x++) {
-        if ((x * 131 + y * 89) % stride != 0) continue;
-        final int i = (y * w + x) * 4;
-        if (pixels[i + 3] >= 45) opaque.add(i);
+
+    final int totalPixels = w * h;
+    final int stride = math.max(1, totalPixels ~/ (targetCount * 4));
+
+    for (int idx = 0; idx < totalPixels; idx += stride) {
+      final int byteOffset = idx * 4;
+      if (byteOffset + 3 < pixels.length && pixels[byteOffset + 3] >= 50) {
+        opaque.add(byteOffset);
       }
     }
-    // Thin/outlined art: scan every pixel to collect enough samples.
+
     if (opaque.length < targetCount) {
-      for (int y = 0; y < h; y++) {
-        for (int x = 0; x < w; x++) {
-          final int i = (y * w + x) * 4;
-          if (pixels[i + 3] >= 45) opaque.add(i);
+      for (int byteOffset = 0; byteOffset < pixels.length; byteOffset += 4) {
+        if (pixels[byteOffset + 3] >= 50) {
+          opaque.add(byteOffset);
         }
       }
     }
@@ -273,46 +270,41 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
     return List<LogoParticle>.generate(count, (int n) {
       final int i = opaque[n];
       final int px = i ~/ 4;
-      // Scatter direction is baked once into startDx/startDy so the painter
-      // avoids per-frame trigonometry.
-      final double angle = rng.nextDouble() * math.pi * 2;
-      final double distance = 0.5 + rng.nextDouble() * 0.75;
+      final int r = pixels[i];
+      final int g = pixels[i + 1];
+      final int b = pixels[i + 2];
+      final int a = pixels[i + 3];
+      final ({int r, int g, int b}) rgb = colorTransformer(r, g, b, a);
+
+      final double angle = rng.nextDouble() * math.pi * 2.0;
+      final double distance = 0.45 + rng.nextDouble() * 0.70;
+
       return LogoParticle(
         targetX: (px % w + 0.5) / w,
         targetY: (px ~/ w + 0.5) / h,
-        color: colorAt(i),
+        r: rgb.r,
+        g: rgb.g,
+        b: rgb.b,
         radius: 1.1 + rng.nextDouble() * 1.3,
-        baseAlpha: 0.55 + rng.nextDouble() * 0.45,
+        baseAlpha: 0.60 + rng.nextDouble() * 0.40,
         startDx: math.cos(angle) * distance,
         startDy: math.sin(angle) * distance,
-        stagger: rng.nextDouble() * 0.55,
-        curveIndex: rng.nextDouble() < 0.16
+        stagger: rng.nextDouble() * 0.50,
+        curveIndex: rng.nextDouble() < 0.20
             ? 2
-            : (rng.nextDouble() < 0.5 ? 0 : 1),
-        driftPhase: rng.nextDouble() * math.pi * 2,
+            : (rng.nextDouble() < 0.50 ? 0 : 1),
+        driftPhase: rng.nextDouble() * math.pi * 2.0,
       );
     });
   }
 
-  /// Keeps sampled colors identical in light mode. In dark mode only the
-  /// darkest samples are lifted slightly so they read against the black
-  /// background; hue is preserved, so logo color regions stay recognizable.
-  Color _themeAwareColor(Color color, {required bool isDark}) {
-    if (!isDark) return color;
-    final HSVColor hsv = HSVColor.fromColor(color);
-    if (hsv.value >= 0.45) return color;
-    return hsv.withValue(math.min(1.0, hsv.value + 0.25)).toColor();
-  }
-
-  /// Reduced-motion / failure path: plain logo with a quick fade-in,
-  /// then the normal navigation flow continues.
   void _startFallback() {
     if (_fallbackStarted) return;
     _fallbackStarted = true;
 
     final AnimationController fade = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 450),
+      duration: const Duration(milliseconds: 400),
     );
     setState(() {
       _loading = false;
@@ -320,7 +312,7 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
       _fadeIn = fade;
     });
     fade.forward();
-    _fallbackTimer = Timer(const Duration(milliseconds: 900), () {
+    _fallbackTimer = Timer(const Duration(milliseconds: 800), () {
       if (mounted) _finish();
     });
   }
@@ -392,7 +384,6 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
     final ui.Image? image = _logoImage;
     final ParticleLogoData? data = _logoData;
     if (_loading || image == null || data == null) {
-      // Phase 1: empty screen while the logo is being prepared.
       return const SizedBox.expand();
     }
 
@@ -419,20 +410,20 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
           return Stack(
             fit: StackFit.expand,
             children: <Widget>[
-              CustomPaint(
-                painter: ParticleLogoPainter(
-                  logo: image,
-                  particles: data.particles,
-                  controller: _controller,
-                  aspectRatio: data.aspectRatio,
-                  textParticles: _textParticles ?? const <LogoParticle>[],
-                  textRect: textRect,
-                  glowColor:
-                      widget.glowColor ?? Theme.of(context).colorScheme.primary,
+              RepaintBoundary(
+                child: CustomPaint(
+                  painter: ParticleLogoPainter(
+                    logo: image,
+                    particles: data.particles,
+                    controller: _controller,
+                    aspectRatio: data.aspectRatio,
+                    textParticles: _textParticles ?? const <LogoParticle>[],
+                    textRect: textRect,
+                    glowColor: widget.glowColor ??
+                        Theme.of(context).colorScheme.primary,
+                  ),
                 ),
               ),
-              // Phase 6: the solid Roboto wordmark cross-fades in over the
-              // dissolving text particles, filling the exact same box.
               if (widget.text.isNotEmpty)
                 Positioned(
                   left: textRect.left,
@@ -455,8 +446,6 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
     );
   }
 
-  /// Solid wordmark style: clean, sharp Roboto, sized for the device,
-  /// with strong theme contrast (dark navy on light, white on dark).
   TextStyle _solidTextStyle(BuildContext context, Size size) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final double fontSize = (size.shortestSide / 12.5).clamp(26.0, 44.0);

@@ -27,8 +27,18 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted || _navigated) return;
     _navigated = true;
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(
-        builder: (_) => LoginScreen(onToggleTheme: widget.onToggleTheme),
+      PageRouteBuilder<void>(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            LoginScreen(onToggleTheme: widget.onToggleTheme),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            FadeTransition(
+          opacity: CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeInOut,
+          ),
+          child: child,
+        ),
+        transitionDuration: const Duration(milliseconds: 350),
       ),
     );
   }

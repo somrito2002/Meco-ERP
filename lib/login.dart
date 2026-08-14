@@ -17,19 +17,20 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _loginIdController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  bool _obscurePassword = true;
+  final ValueNotifier<bool> _obscurePasswordNotifier =
+      ValueNotifier<bool>(true);
   final ValueNotifier<String?> _selectedDepartmentNotifier =
       ValueNotifier<String?>(null);
 
-  final List<String> _departments = <String>[
-    'IT',
-    'HR',
-    'Admin',
+  static const List<String> _departments = <String>[
     'Accounts',
+    'Admin',
+    'HR',
+    'IT',
     'Management',
     'Procurement',
     'Super Admin',
-  ]..sort();
+  ];
 
   String _appVersionText = 'Version --';
 
@@ -57,6 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _loginIdController.dispose();
     _passwordController.dispose();
+    _obscurePasswordNotifier.dispose();
     _selectedDepartmentNotifier.dispose();
     super.dispose();
   }
@@ -161,23 +163,29 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 16),
 
                       // --- Password field ---
-                      _InputField(
-                        controller: _passwordController,
-                        hint: 'Password',
-                        icon: Icons.lock_outline,
-                        obscureText: _obscurePassword,
-                        trailing: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                            color: scheme.onSurfaceVariant,
-                            size: 22,
-                          ),
-                          onPressed: () {
-                            setState(() => _obscurePassword = !_obscurePassword);
-                          },
-                        ),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: _obscurePasswordNotifier,
+                        builder: (context, obscurePassword, _) {
+                          return _InputField(
+                            controller: _passwordController,
+                            hint: 'Password',
+                            icon: Icons.lock_outline,
+                            obscureText: obscurePassword,
+                            trailing: IconButton(
+                              icon: Icon(
+                                obscurePassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                                color: scheme.onSurfaceVariant,
+                                size: 22,
+                              ),
+                              onPressed: () {
+                                _obscurePasswordNotifier.value =
+                                    !obscurePassword;
+                              },
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 16),
 
