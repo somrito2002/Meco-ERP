@@ -3,12 +3,28 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:meco/main.dart';
 
+/// Lets real async work (asset load + image decode + particle sampling)
+/// finish before the fake-clock pumps drive the splash animation to
+/// completion. Polls until the particle reveal is on screen.
+Future<void> pumpThroughSplash(WidgetTester tester) async {
+  await tester.pumpWidget(const MecoApp());
+  await tester.runAsync(() async {
+    for (int i = 0;
+        i < 60 && !tester.any(find.byType(CustomPaint));
+        i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await tester.pump();
+    }
+  });
+  await tester.pump(); // build with the decoded image, start animation
+  await tester.pumpAndSettle(); // run the particle reveal to completion
+  await tester.pump(const Duration(milliseconds: 350)); // fire nav delay
+  await tester.pumpAndSettle(); // complete the route transition
+}
+
 void main() {
-  testWidgets('Login screen renders core elements', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(const MecoApp());
-    await tester.pumpAndSettle();
+  testWidgets('Login screen renders core elements', (WidgetTester tester) async {
+    await pumpThroughSplash(tester);
 
     expect(find.text('Meco'), findsOneWidget);
     expect(find.text('Login'), findsWidgets);
@@ -21,8 +37,7 @@ void main() {
   testWidgets('Theme toggle switches between light and dark themes', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MecoApp());
-    await tester.pumpAndSettle();
+    await pumpThroughSplash(tester);
 
     Brightness brightnessOf() =>
         Theme.of(tester.element(find.text('Meco'))).brightness;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'login.dart';
+import 'screens/splash_screen.dart';
 import 'theme.dart';
 
 void main() {
@@ -31,7 +31,7 @@ class _MecoAppState extends State<MecoApp> {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: _themeMode,
-      home: LoginScreen(onToggleTheme: _toggleTheme),
+      home: SplashScreen(onToggleTheme: _toggleTheme),
     );
   }
 }
