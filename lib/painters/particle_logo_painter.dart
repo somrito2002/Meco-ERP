@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 
 /// A single particle sampled from one non-transparent pixel of the logo.
 ///
-/// [targetX] / [targetY] are normalized coordinates inside the logo box;
-/// the scattered start position is derived from [angle] / [distance].
+/// [targetX] / [targetY] are normalized coordinates inside the logo box.
+/// [startDx] / [startDy] are the precomputed offset of the scattered start
+/// position (unit vector toward [angle] times [distance]), so the painter
+/// never recomputes trigonometry per frame.
 @immutable
 class LogoParticle {
   const LogoParticle({
@@ -15,8 +17,8 @@ class LogoParticle {
     required this.color,
     required this.radius,
     required this.baseAlpha,
-    required this.angle,
-    required this.distance,
+    required this.startDx,
+    required this.startDy,
     required this.stagger,
     required this.curveIndex,
     required this.driftPhase,
@@ -27,8 +29,8 @@ class LogoParticle {
   final Color color;
   final double radius;
   final double baseAlpha;
-  final double angle;
-  final double distance;
+  final double startDx;
+  final double startDy;
   final double stagger;
   final int curveIndex;
   final double driftPhase;
@@ -134,7 +136,7 @@ class ParticleLogoPainter extends CustomPainter {
       if (alpha <= 0.004) continue;
 
       final Offset start = center +
-          Offset(math.cos(p.angle), math.sin(p.angle)) * (p.distance * spread);
+          Offset(p.startDx * spread, p.startDy * spread);
       final Offset target = Offset(
         logoRect.left + p.targetX * logoRect.width,
         logoRect.top + p.targetY * logoRect.height,
@@ -189,7 +191,7 @@ class ParticleLogoPainter extends CustomPainter {
         if (alpha <= 0.004) continue;
 
         final Offset start = center +
-            Offset(math.cos(p.angle), math.sin(p.angle)) * (p.distance * spread);
+            Offset(p.startDx * spread, p.startDy * spread);
         final Offset target = Offset(
           textRect.left + p.targetX * textRect.width,
           textRect.top + p.targetY * textRect.height,

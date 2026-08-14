@@ -273,14 +273,18 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
     return List<LogoParticle>.generate(count, (int n) {
       final int i = opaque[n];
       final int px = i ~/ 4;
+      // Scatter direction is baked once into startDx/startDy so the painter
+      // avoids per-frame trigonometry.
+      final double angle = rng.nextDouble() * math.pi * 2;
+      final double distance = 0.5 + rng.nextDouble() * 0.75;
       return LogoParticle(
         targetX: (px % w + 0.5) / w,
         targetY: (px ~/ w + 0.5) / h,
         color: colorAt(i),
         radius: 1.1 + rng.nextDouble() * 1.3,
         baseAlpha: 0.55 + rng.nextDouble() * 0.45,
-        angle: rng.nextDouble() * math.pi * 2,
-        distance: 0.5 + rng.nextDouble() * 0.75,
+        startDx: math.cos(angle) * distance,
+        startDy: math.sin(angle) * distance,
         stagger: rng.nextDouble() * 0.55,
         curveIndex: rng.nextDouble() < 0.16
             ? 2

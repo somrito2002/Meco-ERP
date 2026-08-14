@@ -92,10 +92,14 @@ class AppColors extends ThemeExtension<AppColors> {
 }
 
 /// Centralized application themes.
+///
+/// Cached as `static final`: building a [ThemeData] (especially
+/// `ColorScheme.fromSeed`) is expensive, so it is done exactly once per
+/// brightness instead of on every access.
 abstract final class AppTheme {
-  static ThemeData get light => _build(Brightness.light);
+  static final ThemeData light = _build(Brightness.light);
 
-  static ThemeData get dark => _build(Brightness.dark);
+  static final ThemeData dark = _build(Brightness.dark);
 
   static ThemeData _build(Brightness brightness) {
     final bool isDark = brightness == Brightness.dark;

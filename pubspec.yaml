@@ -31,9 +31,6 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
   dropdown_button2: ^3.1.0
   package_info_plus: ^10.2.1
 
@@ -64,7 +61,6 @@ flutter:
 
   assets:
     - assets/logo/MECO TECHNOLOGIES PR-Photoroom.png
-    - assets/icon/
 
 # Configuration for `flutter_launcher_icons` (run: dart run flutter_launcher_icons)
 # Source: the uploaded Meco logo, cropped to its content and placed on a
@@ -73,11 +69,10 @@ flutter:
 # uses a transparent background so only the logo itself is visible.
 flutter_launcher_icons:
   android: true
-  ios: false
-  image_path: "assets/icon/meco_icon_legacy.png"
-  background_color: "#00000000"
-  adaptive_icon_background: "#00000000"
-  adaptive_icon_foreground: "assets/icon/meco_icon_foreground.png"
+  ios: true
+  image_path: "assets/icon/2a902826-af50-48d0-8d7b-ecb56e91ff4f.png"
+  adaptive_icon_background: "#161C22"
+  adaptive_icon_foreground: "assets/icon/2a902826-af50-48d0-8d7b-ecb56e91ff4f.png"
   min_sdk_android: 21 # android 5.0+
 
   # An image asset can refer to one or more resolution-specific "variants", see

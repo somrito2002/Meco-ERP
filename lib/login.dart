@@ -1,7 +1,7 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
+import 'app_version.dart';
 import 'theme.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -18,7 +18,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
-  String? _selectedDepartment;
   final ValueNotifier<String?> _selectedDepartmentNotifier =
       ValueNotifier<String?>(null);
 
@@ -42,10 +41,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _loadAppVersion() async {
     try {
-      final packageInfo = await PackageInfo.fromPlatform();
+      final String? version = await AppVersion.installedSemanticVersion();
       if (!mounted) return;
       setState(() {
-        _appVersionText = 'Version ${packageInfo.version}';
+        // Only MAJOR.MINOR.PATCH is shown; the build number is never displayed.
+        _appVersionText = version != null ? 'Version $version' : 'Version --';
       });
     } catch (_) {
       if (!mounted) return;
@@ -64,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleLogin() {
     debugPrint('LoginID: ${_loginIdController.text}');
     debugPrint('Password: ${_passwordController.text}');
-    debugPrint('Department: $_selectedDepartment');
+    debugPrint('Department: ${_selectedDepartmentNotifier.value}');
   }
 
   @override
@@ -91,6 +91,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       Image.asset(
                         'assets/logo/MECO TECHNOLOGIES PR-Photoroom.png',
                         height: 120,
+                        // Shown at ~120 logical px; decode at a capped width
+                        // instead of the full 862px source.
+                        cacheWidth: 512,
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) {
                           // Fallback if asset is missing or fails to load
@@ -240,8 +243,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                           ],
                           onChanged: (value) {
+                            // The dropdown drives its own UI via
+                            // `valueListenable`; no screen-wide setState.
                             _selectedDepartmentNotifier.value = value;
-                            setState(() => _selectedDepartment = value);
                           },
                           buttonStyleData: ButtonStyleData(
                             width: double.infinity,
