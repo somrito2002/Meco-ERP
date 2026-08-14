@@ -17,3 +17,10 @@
 # Don't warn for missing references from external libraries
 -dontwarn javax.annotation.**
 -dontwarn kotlin.Unit
+
+# The Flutter engine references Play Core for deferred components. This app
+# does not ship Play Core, so these engine code paths are never executed.
+# Suppressing the warnings is required for R8 to complete successfully.
+-dontwarn com.google.android.play.core.splitcompat.**
+-dontwarn com.google.android.play.core.splitinstall.**
+-dontwarn com.google.android.play.core.tasks.**
