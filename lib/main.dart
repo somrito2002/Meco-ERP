@@ -14,12 +14,16 @@ class MecoApp extends StatefulWidget {
 }
 
 class _MecoAppState extends State<MecoApp> {
-  ThemeMode _themeMode = ThemeMode.light;
+  ThemeMode _themeMode = ThemeMode.system;
 
   void _toggleTheme() {
     setState(() {
-      _themeMode =
-          _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+      final Brightness platformBrightness =
+          WidgetsBinding.instance.platformDispatcher.platformBrightness;
+      final bool isCurrentlyDark = _themeMode == ThemeMode.dark ||
+          (_themeMode == ThemeMode.system &&
+              platformBrightness == Brightness.dark);
+      _themeMode = isCurrentlyDark ? ThemeMode.light : ThemeMode.dark;
     });
   }
 
