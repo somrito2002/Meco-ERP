@@ -1,5 +1,9 @@
+import 'package:account_picker/account_picker.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'app_version.dart';
 import 'theme.dart';
@@ -66,6 +70,32 @@ class _LoginScreenState extends State<LoginScreen> {
     debugPrint('LoginID: ${_loginIdController.text}');
     debugPrint('Password: ${_passwordController.text}');
     debugPrint('Department: ${_selectedDepartmentNotifier.value}');
+  }
+
+  /// Android shows the system account chooser, listing every email ID
+  /// configured on the device. The chosen account is used as the sender,
+  /// then the device mail app opens with the support address pre-filled in
+  /// the "To" field and a "Issue Regarding Login" subject.
+  Future<void> _handleSupportEmailTap() async {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        await AccountPicker.emailHint();
+      } on PlatformException {
+        // Account picker unavailable; still open the mail app below.
+      }
+    }
+
+    final Uri mailUri = Uri(
+      scheme: 'mailto',
+      path: 'support@meco.io',
+      query: 'subject=${Uri.encodeComponent('Issue Regarding Login')}',
+    );
+
+    try {
+      await launchUrl(mailUri, mode: LaunchMode.externalApplication);
+    } on PlatformException {
+      // No mail client installed; nothing else to do.
+    }
   }
 
   @override
@@ -316,9 +346,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 4),
                   GestureDetector(
-                    onTap: () {
-                      // TODO: launch mail client, e.g. using url_launcher
-                    },
+                    onTap: _handleSupportEmailTap,
                     child: Text(
                       'support@meco.io',
                       style: TextStyle(

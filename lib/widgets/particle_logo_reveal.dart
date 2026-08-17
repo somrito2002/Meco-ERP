@@ -348,7 +348,7 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
               children: <Widget>[
                 ConstrainedBox(
                   constraints: BoxConstraints(
-                    maxHeight: MediaQuery.sizeOf(context).height * 0.36,
+                    maxHeight: MediaQuery.sizeOf(context).height * 0.75,
                   ),
                   child: Image.asset(
                     widget.assetPath,
@@ -384,64 +384,73 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
     final ui.Image? image = _logoImage;
     final ParticleLogoData? data = _logoData;
     if (_loading || image == null || data == null) {
-      return const SizedBox.expand();
+      return const SizedBox.shrink();
     }
 
-    return SizedBox.expand(
-      child: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          final Size size = constraints.biggest;
-          final Rect logoRect = ParticleLogoPainter.logoRectFor(
-            size,
-            data.aspectRatio,
-          );
-          final TextStyle solidStyle = _solidTextStyle(context, size);
-          final TextPainter measure = TextPainter(
-            text: TextSpan(text: widget.text, style: solidStyle),
-            textDirection: TextDirection.ltr,
-            textAlign: TextAlign.center,
-          )..layout();
-          final Rect textRect = ParticleLogoPainter.textRectFor(
-            size,
-            logoRect,
-            Size(measure.width, measure.height),
-          );
+    final Size screenSize = MediaQuery.sizeOf(context);
+    final Rect logoRect = ParticleLogoPainter.logoRectFor(
+      screenSize, // Pass screen size to calculate relative logo size
+      data.aspectRatio,
+    );
+    final TextStyle solidStyle = _solidTextStyle(context, screenSize);
+    final TextPainter measure = TextPainter(
+      text: TextSpan(text: widget.text, style: solidStyle),
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    )..layout();
+    final Rect textRect = ParticleLogoPainter.textRectFor(
+      screenSize,
+      logoRect,
+      Size(measure.width, measure.height),
+    );
 
-          return Stack(
-            fit: StackFit.expand,
-            children: <Widget>[
-              RepaintBoundary(
-                child: CustomPaint(
-                  painter: ParticleLogoPainter(
-                    logo: image,
-                    particles: data.particles,
-                    controller: _controller,
-                    aspectRatio: data.aspectRatio,
-                    textParticles: _textParticles ?? const <LogoParticle>[],
-                    textRect: textRect,
-                    glowColor: widget.glowColor ??
-                        Theme.of(context).colorScheme.primary,
-                  ),
+    // Calculate the total bounding box height for the logo and text
+    final double totalHeight = textRect.bottom - logoRect.top;
+    final double totalWidth = screenSize.width; // Use full width
+
+    return SizedBox(
+      width: totalWidth,
+      height: totalHeight,
+      child: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          RepaintBoundary(
+            child: CustomPaint(
+              painter: ParticleLogoPainter(
+                logo: image,
+                particles: data.particles,
+                controller: _controller,
+                aspectRatio: data.aspectRatio,
+                textParticles: _textParticles ?? const <LogoParticle>[],
+                textRect: Rect.fromLTWH(
+                  textRect.left,
+                  textRect.top - logoRect.top, // Offset to local coordinates
+                  textRect.width,
+                  textRect.height,
+                ),
+                glowColor: widget.glowColor ??
+                    Theme.of(context).colorScheme.primary,
+                screenSize: screenSize,
+                localOffset: Offset(0, -logoRect.top), // Pass this to painter
+              ),
+            ),
+          ),
+          if (widget.text.isNotEmpty)
+            Positioned(
+              left: textRect.left,
+              top: textRect.top - logoRect.top, // Offset to local coordinates
+              width: textRect.width,
+              height: textRect.height,
+              child: FadeTransition(
+                opacity: _solidTextFade,
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  alignment: Alignment.center,
+                  child: Text(widget.text, style: solidStyle),
                 ),
               ),
-              if (widget.text.isNotEmpty)
-                Positioned(
-                  left: textRect.left,
-                  top: textRect.top,
-                  width: textRect.width,
-                  height: textRect.height,
-                  child: FadeTransition(
-                    opacity: _solidTextFade,
-                    child: FittedBox(
-                      fit: BoxFit.contain,
-                      alignment: Alignment.center,
-                      child: Text(widget.text, style: solidStyle),
-                    ),
-                  ),
-                ),
-            ],
-          );
-        },
+            ),
+        ],
       ),
     );
   }

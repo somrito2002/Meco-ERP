@@ -40,6 +40,12 @@ dependencies:
   # Department dropdown / custom dropdown functionality
   dropdown_button2: ^3.1.0
 
+  # Native account picker: lists the user's device email accounts
+  account_picker: ^2.2.0
+
+  # Launches the device mail app with a pre-filled compose window
+  url_launcher: ^6.3.1
+
   # Dynamically retrieves app version and build information
   package_info_plus: ^10.2.1
 

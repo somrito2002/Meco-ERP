@@ -66,6 +66,8 @@ class ParticleLogoPainter extends CustomPainter {
     required this.aspectRatio,
     required this.textParticles,
     required this.textRect,
+    required this.screenSize,
+    this.localOffset = Offset.zero,
   }) : super(repaint: controller);
 
   final ui.Image logo;
@@ -73,12 +75,16 @@ class ParticleLogoPainter extends CustomPainter {
   final Animation<double> controller;
   final Color glowColor;
   final double aspectRatio;
+  final Size screenSize;
 
   /// Wordmark ("Meco") particles revealed below the logo.
   final List<LogoParticle> textParticles;
 
   /// On-screen box the wordmark occupies.
   final Rect textRect;
+
+  /// Offset to apply to all drawing operations to localize coordinates
+  final Offset localOffset;
 
   // Reusable paints
   static final Paint _dotPaint = Paint()..isAntiAlias = true;
@@ -101,11 +107,14 @@ class ParticleLogoPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.translate(localOffset.dx, localOffset.dy);
+
     final double t = controller.value;
-    final Offset center = size.center(Offset.zero);
-    final double minDim = math.min(size.width, size.height);
+    final Offset center = screenSize.center(Offset.zero);
+    final double minDim = math.min(screenSize.width, screenSize.height);
     final double spread = minDim * 0.58;
-    final Rect logoRect = logoRectFor(size, aspectRatio);
+    final Rect logoRect = logoRectFor(screenSize, aspectRatio);
     final double scale = (minDim / 700.0).clamp(0.6, 1.4);
 
     // 1. Draw logo particles (scattered -> convergence -> lock)
@@ -251,6 +260,7 @@ class ParticleLogoPainter extends CustomPainter {
       ),
       _logoPaint,
     );
+    canvas.restore();
   }
 
   /// Fast analytic easing polynomials without bezier equation overhead.
@@ -277,8 +287,8 @@ class ParticleLogoPainter extends CustomPainter {
   static Rect logoRectFor(Size size, double aspectRatio) {
     double w = size.width * 0.70;
     double h = w / aspectRatio;
-    if (h > size.height * 0.36) {
-      h = size.height * 0.36;
+    if (h > size.height * 0.75) {
+      h = size.height * 0.75;
       w = h * aspectRatio;
     }
     if (w > size.width * 0.92) {
