@@ -408,6 +408,21 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
     final double totalHeight = textRect.bottom - logoRect.top;
     final double totalWidth = screenSize.width; // Use full width
 
+    // ONE SHARED POSITION VALUE FOR BOTH PARTICLE TEXT AND FINAL TEXT
+    final Rect localTextRect = Rect.fromLTWH(
+      textRect.left,
+      textRect.top - logoRect.top, // Offset to local coordinates
+      textRect.width,
+      textRect.height,
+    );
+
+    final Rect localLogoRect = Rect.fromLTWH(
+      logoRect.left,
+      0,
+      logoRect.width,
+      logoRect.height,
+    );
+
     return SizedBox(
       width: totalWidth,
       height: totalHeight,
@@ -422,25 +437,20 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
                 controller: _controller,
                 aspectRatio: data.aspectRatio,
                 textParticles: _textParticles ?? const <LogoParticle>[],
-                textRect: Rect.fromLTWH(
-                  textRect.left,
-                  textRect.top - logoRect.top, // Offset to local coordinates
-                  textRect.width,
-                  textRect.height,
-                ),
+                textRect: localTextRect,
+                logoRect: localLogoRect,
                 glowColor: widget.glowColor ??
                     Theme.of(context).colorScheme.primary,
                 screenSize: screenSize,
-                localOffset: Offset(0, -logoRect.top), // Pass this to painter
               ),
             ),
           ),
           if (widget.text.isNotEmpty)
             Positioned(
-              left: textRect.left,
-              top: textRect.top - logoRect.top, // Offset to local coordinates
-              width: textRect.width,
-              height: textRect.height,
+              left: localTextRect.left,
+              top: localTextRect.top,
+              width: localTextRect.width,
+              height: localTextRect.height,
               child: FadeTransition(
                 opacity: _solidTextFade,
                 child: FittedBox(

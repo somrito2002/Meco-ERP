@@ -66,8 +66,8 @@ class ParticleLogoPainter extends CustomPainter {
     required this.aspectRatio,
     required this.textParticles,
     required this.textRect,
+    required this.logoRect, // ADDED
     required this.screenSize,
-    this.localOffset = Offset.zero,
   }) : super(repaint: controller);
 
   final ui.Image logo;
@@ -83,8 +83,8 @@ class ParticleLogoPainter extends CustomPainter {
   /// On-screen box the wordmark occupies.
   final Rect textRect;
 
-  /// Offset to apply to all drawing operations to localize coordinates
-  final Offset localOffset;
+  /// The bounding box of the logo
+  final Rect logoRect;
 
   // Reusable paints
   static final Paint _dotPaint = Paint()..isAntiAlias = true;
@@ -108,13 +108,15 @@ class ParticleLogoPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     canvas.save();
-    canvas.translate(localOffset.dx, localOffset.dy);
 
     final double t = controller.value;
+    
+    // We still use the global center for scatter starting points
+    // so particles fly in from the same relative screen locations.
     final Offset center = screenSize.center(Offset.zero);
+    
     final double minDim = math.min(screenSize.width, screenSize.height);
     final double spread = minDim * 0.58;
-    final Rect logoRect = logoRectFor(screenSize, aspectRatio);
     final double scale = (minDim / 700.0).clamp(0.6, 1.4);
 
     // 1. Draw logo particles (scattered -> convergence -> lock)

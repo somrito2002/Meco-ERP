@@ -74,23 +74,50 @@ class _SplashScreenState extends State<SplashScreen>
     return Scaffold(
       backgroundColor: isDark ? Colors.black : Colors.white,
       body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ParticleLogoReveal(
-                assetPath: kMecoLogoAsset,
-                onComplete: _onRevealComplete,
+        child: Column(
+          children: [
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ParticleLogoReveal(
+                      assetPath: kMecoLogoAsset,
+                      onComplete: _onRevealComplete,
+                    ),
+                    const SizedBox(height: 12),
+                    _ShineSweepAnimation(
+                      animation: _shineController,
+                      isDark: isDark,
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
-              _ShineSweepAnimation(
-                animation: _shineController,
-                isDark: isDark,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.verified_user,
+                    color: Theme.of(context).colorScheme.onSurface,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '100% Data Privacy & Security',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 13,
+                      fontStyle: FontStyle.italic,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

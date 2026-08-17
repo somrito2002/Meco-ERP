@@ -205,31 +205,7 @@ class _MecoOnboardingScreenState extends State<MecoOnboardingScreen>
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // TODO: Implement "Stay logged in" logic
-                        _goToLogin();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: mecoDarkAccent,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Stay logged in →',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
+
                 ],
               ),
             ),
