@@ -87,10 +87,10 @@ flutter_launcher_icons:
   remove_alpha_ios: true
 
   # Premium dark-background Meco globe app icon
-  image_path: "assets/icon/2a902826-af50-48d0-8d7b-ecb56e91ff4f.png"
+  image_path: "assets/icon/App icon.png"
 
   # Android adaptive icon — background matches icon's dark border colour
   adaptive_icon_background: "#1A1D23"
-  adaptive_icon_foreground: "assets/icon/2a902826-af50-48d0-8d7b-ecb56e91ff4f.png"
+  adaptive_icon_foreground: "assets/icon/App icon.png"
 
   min_sdk_android: 21

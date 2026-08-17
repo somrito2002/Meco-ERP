@@ -113,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Text(
                     'Meco',
                     style: TextStyle(
-                      fontSize: 38,
+                      fontSize: 42,
                       fontWeight: FontWeight.w800,
                       color: scheme.onSurface,
                       letterSpacing: 0.5,

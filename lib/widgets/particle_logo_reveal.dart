@@ -368,7 +368,7 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
                   style: TextStyle(
                     fontFamily: 'Roboto',
                     fontWeight: FontWeight.w600,
-                    fontSize: 30,
+                    fontSize: 44,
                     color: Theme.of(context).brightness == Brightness.dark
                         ? Colors.white
                         : AppPalette.ink,
@@ -448,7 +448,7 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
 
   TextStyle _solidTextStyle(BuildContext context, Size size) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final double fontSize = (size.shortestSide / 12.5).clamp(26.0, 44.0);
+    final double fontSize = 44.0;
     return TextStyle(
       fontFamily: 'Roboto',
       fontWeight: FontWeight.w600,
