@@ -111,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Meco',
+                    'MECO',
                     style: TextStyle(
                       fontSize: 42,
                       fontWeight: FontWeight.w800,

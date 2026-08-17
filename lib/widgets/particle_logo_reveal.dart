@@ -17,7 +17,7 @@ class ParticleLogoReveal extends StatefulWidget {
     required this.assetPath,
     required this.onComplete,
     this.glowColor,
-    this.text = 'Meco',
+    this.text = 'MECO',
   });
 
   final String assetPath;

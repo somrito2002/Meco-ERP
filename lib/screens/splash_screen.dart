@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../login.dart';
 import '../widgets/particle_logo_reveal.dart';
+import 'meco_onboarding_screen.dart';
 
 /// Path to the original uploaded Meco logo.
 /// Path to the transparent Meco globe used in particle reveal & login.
@@ -28,7 +29,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder<void>(
         pageBuilder: (context, animation, secondaryAnimation) =>
-            const LoginScreen(),
+            const MecoOnboardingScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) =>
             FadeTransition(
               opacity: CurvedAnimation(
