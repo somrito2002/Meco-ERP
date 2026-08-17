@@ -34,7 +34,7 @@ void main() {
     expect(find.text('support@meco.io'), findsOneWidget);
   });
 
-  testWidgets('Theme toggle switches between light and dark themes', (
+  testWidgets('Login screen follows system theme with no theme toggle', (
     WidgetTester tester,
   ) async {
     await pumpThroughSplash(tester);
@@ -43,12 +43,14 @@ void main() {
         Theme.of(tester.element(find.text('Meco'))).brightness;
 
     expect(brightnessOf(), Brightness.light);
+    expect(find.byIcon(Icons.dark_mode_outlined), findsNothing);
+    expect(find.byIcon(Icons.light_mode_outlined), findsNothing);
 
-    await tester.tap(find.byIcon(Icons.dark_mode_outlined));
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
     await tester.pumpAndSettle();
     expect(brightnessOf(), Brightness.dark);
 
-    await tester.tap(find.byIcon(Icons.light_mode_outlined));
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
     await tester.pumpAndSettle();
     expect(brightnessOf(), Brightness.light);
   });

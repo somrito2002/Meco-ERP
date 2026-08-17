@@ -10,9 +10,7 @@ const String kMecoLogoAsset = 'assets/logo/MECO TECHNOLOGIES PR-Photoroom.png';
 /// Shows the particle-reveal splash, then hands off to the login screen
 /// using the app's existing Navigator-based routing.
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key, required this.onToggleTheme});
-
-  final VoidCallback onToggleTheme;
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -30,15 +28,15 @@ class _SplashScreenState extends State<SplashScreen> {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder<void>(
         pageBuilder: (context, animation, secondaryAnimation) =>
-            LoginScreen(onToggleTheme: widget.onToggleTheme),
+            const LoginScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) =>
             FadeTransition(
-          opacity: CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeInOut,
-          ),
-          child: child,
-        ),
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeInOut,
+              ),
+              child: child,
+            ),
         transitionDuration: const Duration(milliseconds: 350),
       ),
     );
