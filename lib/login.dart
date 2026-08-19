@@ -26,13 +26,21 @@ class _LoginScreenState extends State<LoginScreen> {
       ValueNotifier<String?>(null);
 
   static const List<String> _departments = <String>[
-    'Accounts',
-    'Admin',
-    'HR',
-    'IT',
-    'Management',
-    'Procurement',
-    'Super Admin',
+    'Accounts & Finance',
+    'Administration / Back Office',
+    'Billing & Commercial',
+    'Civil / Construction',
+    'Design & Technical',
+    'Electrical',
+    'Human Resources (HR)',
+    'Maintenance',
+    'Management / Executive',
+    'Mechanical',
+    'Plant / Production',
+    'Projects & Operations',
+    'Purchase & Procurement',
+    'Tender Cell & Coordination',
+    'Vigilance',
   ];
 
   String _appVersionText = 'Version --';
@@ -243,6 +251,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             value: dept,
                             child: Text(
                               dept,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 color: scheme.onSurface,
                                 fontSize: 15,
@@ -263,6 +273,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               const SizedBox(width: 16),
                               Text(
                                 dept,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   color: scheme.onSurface,
                                   fontSize: 15,
