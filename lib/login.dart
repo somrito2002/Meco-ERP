@@ -25,6 +25,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final ValueNotifier<String?> _selectedDepartmentNotifier =
       ValueNotifier<String?>(null);
 
+  bool _isDepartmentDropdownOpen = false;
+
   static const List<String> _departments = <String>[
     'Accounts & Finance',
     'Administration / Back Office',
@@ -33,6 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
     'Design & Technical',
     'Electrical',
     'Human Resources (HR)',
+    'IT/ Developer',
     'Maintenance',
     'Management / Executive',
     'Mechanical',
@@ -288,13 +291,20 @@ class _LoginScreenState extends State<LoginScreen> {
                         // `valueListenable`; no screen-wide setState.
                         _selectedDepartmentNotifier.value = value;
                       },
+                      onMenuStateChange: (isOpen) {
+                        setState(() {
+                          _isDepartmentDropdownOpen = isOpen;
+                        });
+                      },
                       buttonStyleData: ButtonStyleData(
                         width: double.infinity,
                         height: 52,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
                           color: scheme.surface,
-                          border: Border.all(color: scheme.outline),
+                          border: _isDepartmentDropdownOpen
+                              ? Border.all(color: scheme.primary, width: 1.5)
+                              : Border.all(color: scheme.outline),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         elevation: 0,
