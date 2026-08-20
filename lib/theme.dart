@@ -8,6 +8,14 @@ abstract final class AppPalette {
   /// Brand navy, used as the primary color (buttons, focused borders, accents).
   static const Color navy = Color(0xFF0E2438);
 
+  /// Meco green, the application's primary accent color (single source of
+  /// truth for all active/selected/interactive brand-green states).
+  static const Color green = Color(0xFF4CAF50);
+
+  /// Meco green used for the profile avatar background (single source of
+  /// truth for the avatar color across every screen).
+  static const Color profileAvatar = Color(0xFF388E3C);
+
   /// Primary color for dark mode (lighter navy so it stands out on black).
   static const Color navyLight = Color(0xFF3D74C0);
 

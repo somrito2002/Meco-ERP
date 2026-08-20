@@ -225,7 +225,10 @@ class ParticleLogoPainter extends CustomPainter {
 
     // 3. Final phase: Smooth cross-fade to high-res logo with gentle bloom
     final double lProgress = _clamp01((t - _logoStart) / (_logoEnd - _logoStart));
-    if (lProgress <= 0.001) return;
+    if (lProgress <= 0.001) {
+      canvas.restore();
+      return;
+    }
 
     // Quartic ease-out for logo cross-fade
     final double inv = 1.0 - lProgress;

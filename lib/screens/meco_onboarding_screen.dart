@@ -87,10 +87,9 @@ class _MecoOnboardingScreenState extends State<MecoOnboardingScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? Colors.black : Colors.white;
-    final textColor = isDark ? Colors.white : Colors.black87;
-    final subTextColor = isDark ? Colors.white70 : Colors.black54;
+    final bg = Theme.of(context).colorScheme.surface;
+    final textColor = Theme.of(context).colorScheme.onSurface;
+    final subTextColor = Theme.of(context).colorScheme.onSurfaceVariant;
 
     return Scaffold(
       backgroundColor: bg,
@@ -101,7 +100,7 @@ class _MecoOnboardingScreenState extends State<MecoOnboardingScreen>
             Image.asset(
               kMecoLogoAsset,
               height: 44,
-              errorBuilder: (_, __, ___) => Text(
+              errorBuilder: (context, error, stackTrace) => Text(
                 'MECO',
                 style: TextStyle(
                   fontSize: 26,
@@ -166,7 +165,7 @@ class _MecoOnboardingScreenState extends State<MecoOnboardingScreen>
                   height: active ? 10 : 8,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: active ? mecoPrimaryColor : Colors.grey.shade300,
+                    color: active ? mecoPrimaryColor : Theme.of(context).colorScheme.outlineVariant,
                   ),
                 );
               }),
@@ -344,6 +343,7 @@ class _CalloutBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -351,7 +351,7 @@ class _CalloutBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
+            color: isDark ? const Color(0xFF1E293B) : Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -389,12 +389,12 @@ class _PhoneFrame extends StatelessWidget {
       height: 340,
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.grey.shade300, width: 6),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant, width: 6),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -415,10 +415,10 @@ class _ScreenTitle extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.w700,
-          color: Colors.black87,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );
@@ -444,17 +444,17 @@ class _MockRow extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: highlighted ? Colors.grey.shade100 : Colors.transparent,
+        color: highlighted ? Theme.of(context).colorScheme.surfaceContainerHighest : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 15, color: Colors.grey.shade600),
+          Icon(icon, size: 15, color: Theme.of(context).colorScheme.onSurfaceVariant),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(fontSize: 12.5, color: Colors.black87),
+              style: TextStyle(fontSize: 12.5, color: Theme.of(context).colorScheme.onSurface),
             ),
           ),
         ],
@@ -476,11 +476,11 @@ class _FloatingCard extends StatelessWidget {
       width: 170,
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.18),
+            color: Colors.black.withValues(alpha: 0.18),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -533,7 +533,7 @@ class _TaskManagerMockState extends _AnimatedMockState<_TaskManagerMock> {
       children: [
         _PhoneFrame(
           child: Container(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -662,9 +662,9 @@ class _TaskManagerMockState extends _AnimatedMockState<_TaskManagerMock> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
+                  Text(
                     '₹45,072',
-                    style: TextStyle(fontSize: 11, color: Colors.black54),
+                    style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -695,7 +695,7 @@ class _DesignsMockState extends _AnimatedMockState<_DesignsMock> {
       children: [
         _PhoneFrame(
           child: Container(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -713,7 +713,9 @@ class _DesignsMockState extends _AnimatedMockState<_DesignsMock> {
                             begin: 0.05,
                             end: 0.35,
                             child: CustomPaint(
-                              painter: _FloorPlanPainter(),
+                              painter: _FloorPlanPainter(
+                                wallColor: Theme.of(context).colorScheme.outlineVariant,
+                              ),
                               child: const SizedBox.expand(),
                             ),
                           ),
@@ -737,13 +739,13 @@ class _DesignsMockState extends _AnimatedMockState<_DesignsMock> {
                                       CircleAvatar(
                                         radius: 8,
                                         backgroundColor: mecoPrimaryColor
-                                            .withOpacity(0.6),
+                                            .withValues(alpha: 0.6),
                                       ),
                                       const SizedBox(width: 6),
                                       Expanded(
                                         child: Container(
                                           height: 5,
-                                          color: Colors.grey.shade200,
+                                          color: Theme.of(context).colorScheme.outlineVariant,
                                         ),
                                       ),
                                     ],
@@ -831,10 +833,13 @@ class _DesignsMockState extends _AnimatedMockState<_DesignsMock> {
 }
 
 class _FloorPlanPainter extends CustomPainter {
+  final Color wallColor;
+  _FloorPlanPainter({required this.wallColor});
+
   @override
   void paint(Canvas canvas, Size size) {
     final wall = Paint()
-      ..color = Colors.grey.shade400
+      ..color = wallColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
     final highlight = Paint()
@@ -882,7 +887,7 @@ class _ActivityScheduleMockState
       children: [
         _PhoneFrame(
           child: Container(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -980,13 +985,18 @@ class _ActivityScheduleMockState
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        '2.1 Civil Work',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                      Flexible(
+                        child: Text(
+                          '2.1 Civil Work',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 6,
@@ -1011,9 +1021,9 @@ class _ActivityScheduleMockState
                     'Planned End: 30 Aug',
                     style: TextStyle(fontSize: 10, color: Colors.black54),
                   ),
-                  const Text(
+                  Text(
                     'Actual End: 2 Sep',
-                    style: TextStyle(fontSize: 10, color: Colors.black54),
+                    style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 6),
                   _StaggerIn(
@@ -1181,7 +1191,7 @@ class _ChipStat extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             label,
-            style: const TextStyle(fontSize: 11, color: Colors.black54),
+            style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           const SizedBox(width: 8),
           Expanded(child: Container(height: 5, color: Colors.grey.shade200)),
@@ -1333,7 +1343,7 @@ class _CheckRow extends StatelessWidget {
               ),
               Text(
                 subtitle,
-                style: const TextStyle(fontSize: 9.5, color: Colors.black45),
+                style: TextStyle(fontSize: 9.5, color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ],
           ),

@@ -2,7 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../session.dart';
 import '../widgets/particle_logo_reveal.dart';
+import 'dashboard_screen.dart';
 import 'meco_onboarding_screen.dart';
 /// Path to the original uploaded Meco logo.
 /// Path to the transparent Meco globe used in particle reveal & login.
@@ -51,10 +53,21 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted || _navigated) return;
 
     _navigated = true;
+    // A signed-in user goes straight to their dashboard; a logged-out user
+    // sees the onboarding flow and then the login screen.
+    bool loggedIn = false;
+    try {
+      loggedIn = await Session.isLoggedIn();
+    } catch (_) {
+      // Storage unavailable (e.g. during tests); treat as logged out.
+      loggedIn = false;
+    }
+    if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder<void>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const MecoOnboardingScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) => loggedIn
+            ? const DashboardScreen()
+            : const MecoOnboardingScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) =>
             FadeTransition(
           opacity: CurvedAnimation(
@@ -72,7 +85,7 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -165,8 +178,8 @@ class _ShineSweepAnimation extends StatelessWidget {
                         gradient: LinearGradient(
                           colors: [
                             Colors.transparent,
-                            const Color(0xFF0D6EFD).withOpacity(0.5),
-                            const Color(0xFF7FDBFF).withOpacity(0.8),
+                            const Color(0xFF0D6EFD).withValues(alpha: 0.5),
+                            const Color(0xFF7FDBFF).withValues(alpha: 0.8),
                             Colors.transparent,
                           ],
                           stops: const [0.0, 0.3, 0.7, 1.0],
@@ -183,7 +196,7 @@ class _ShineSweepAnimation extends StatelessWidget {
                           decoration: BoxDecoration(
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF7FDBFF).withOpacity(0.8),
+                                color: const Color(0xFF7FDBFF).withValues(alpha: 0.8),
                                 blurRadius: 8,
                                 spreadRadius: 2,
                               ),
@@ -205,10 +218,10 @@ class _ShineSweepAnimation extends StatelessWidget {
                 return LinearGradient(
                   colors: [
                     // White for revealed, Dark for unrevealed
-                    isDark ? Colors.white : Colors.black87,
-                    isDark ? Colors.white : Colors.black87,
-                    isDark ? const Color(0xFF1A1A1A) : Colors.black12,
-                    isDark ? const Color(0xFF1A1A1A) : Colors.black12,
+                    Theme.of(context).colorScheme.onSurface,
+                    Theme.of(context).colorScheme.onSurface,
+                    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.12),
+                    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.12),
                   ],
                   stops: [
                     0.0,

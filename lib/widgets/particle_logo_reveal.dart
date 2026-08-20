@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../painters/particle_logo_painter.dart';
-import '../theme.dart';
+
 
 /// Decodes the logo asset with optimized native downsampling, samples visible
 /// pixels into particles, and smoothly reveals the real logo with high-performance
@@ -188,8 +188,7 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
   Future<List<LogoParticle>?> _buildTextParticles() async {
     if (widget.text.isEmpty) return null;
     try {
-      final bool isDark = Theme.of(context).brightness == Brightness.dark;
-      final Color textColor = isDark ? Colors.white : AppPalette.ink;
+      final Color textColor = Theme.of(context).colorScheme.onSurface;
       final TextPainter painter = TextPainter(
         text: TextSpan(
           text: widget.text,
@@ -369,9 +368,7 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
                     fontFamily: 'Roboto',
                     fontWeight: FontWeight.w600,
                     fontSize: 44,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : AppPalette.ink,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -466,13 +463,11 @@ class _ParticleLogoRevealState extends State<ParticleLogoReveal>
   }
 
   TextStyle _solidTextStyle(BuildContext context, Size size) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final double fontSize = 44.0;
     return TextStyle(
       fontFamily: 'Roboto',
       fontWeight: FontWeight.w600,
-      fontSize: fontSize,
-      color: isDark ? Colors.white : AppPalette.ink,
+      fontSize: 44.0,
+      color: Theme.of(context).colorScheme.onSurface,
     );
   }
 }

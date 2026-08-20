@@ -49,6 +49,9 @@ dependencies:
   # Dynamically retrieves app version and build information
   package_info_plus: ^10.2.1
 
+  # Persists the login session across app restarts
+  shared_preferences: ^2.5.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

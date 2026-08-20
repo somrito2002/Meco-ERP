@@ -6,6 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'app_version.dart';
+import 'auth/demo_users.dart';
+import 'models/demo_user.dart';
+import 'screens/dashboard_screen.dart';
+import 'session.dart';
 import 'theme.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -35,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
     'Design & Technical',
     'Electrical',
     'Human Resources (HR)',
-    'IT/ Developer',
+    'IT/Developer',
     'Maintenance',
     'Management / Executive',
     'Mechanical',
@@ -78,9 +82,35 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _handleLogin() {
-    debugPrint('LoginID: ${_loginIdController.text}');
-    debugPrint('Password: ${_passwordController.text}');
-    debugPrint('Department: ${_selectedDepartmentNotifier.value}');
+    final loginId = _loginIdController.text.trim();
+    final password = _passwordController.text;
+    final department = _selectedDepartmentNotifier.value;
+
+    // Authenticate against the temporary demo users. All three values must
+    // match; the auth service decides, the UI does not.
+    final DemoUser? user = authenticate(
+      loginId: loginId,
+      password: password,
+      department: department,
+    );
+
+    if (user != null) {
+      // Persist the session so the user stays logged in across restarts.
+      Session.save(user);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const DashboardScreen(),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Invalid Login ID, Password, or Department."),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   /// Android shows the system account chooser, listing every email ID
