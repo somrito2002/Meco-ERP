@@ -93,13 +93,20 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
   String _selectedId = 'important';
 
   // Sections whose submenu is currently expanded (independent per section)
-  final Set<String> _expandedSections = {};
+  // Pre-expand all sections that have sub-items so they show on first load.
+  final Set<String> _expandedSections = {'tasks_for_me', 'tasks_by_me', 'my_requests'};
+
+  // Currently selected sub-item (e.g. 'Active', 'Archived') — null means show list
+  String? _selectedSubItem;
 
   TaskCategory get _selectedCategory =>
       _categories.firstWhere((c) => c.id == _selectedId);
 
   void _onSelectCategory(String id) {
-    setState(() => _selectedId = id);
+    setState(() {
+      _selectedId = id;
+      _selectedSubItem = null; // reset sub-item when switching category
+    });
   }
 
   void _onToggleSection(String id) {
@@ -108,6 +115,10 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
         _expandedSections.add(id);
       }
     });
+  }
+
+  void _onSubItemTap(String title) {
+    setState(() => _selectedSubItem = title);
   }
 
   @override
@@ -145,9 +156,15 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                       const VerticalDivider(
                           width: 1, thickness: 1, color: Color(0xFFE2E8F0)),
                       Expanded(
-                        child: _TaskContent(
-                          category: _selectedCategory,
-                        ),
+                        child: _selectedSubItem != null
+                            ? _TaskSubItemDetail(
+                                title: _selectedSubItem!,
+                                onBack: () => setState(() => _selectedSubItem = null),
+                              )
+                            : _TaskContent(
+                                category: _selectedCategory,
+                                onSubItemTap: _onSubItemTap,
+                              ),
                       ),
                     ],
                   );
@@ -162,9 +179,15 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                       ),
                       const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
                       Expanded(
-                        child: _TaskContent(
-                          category: _selectedCategory,
-                        ),
+                        child: _selectedSubItem != null
+                            ? _TaskSubItemDetail(
+                                title: _selectedSubItem!,
+                                onBack: () => setState(() => _selectedSubItem = null),
+                              )
+                            : _TaskContent(
+                                category: _selectedCategory,
+                                onSubItemTap: _onSubItemTap,
+                              ),
                       ),
                     ],
                   );
@@ -284,50 +307,14 @@ class _TaskSidebar extends StatelessWidget {
                 final isExpanded = expandedSections.contains(cat.id);
 
                 if (subItems != null) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0, left: 12.0, right: 12.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          InkWell(
-                            onTap: () {
-                              onSelect(cat.id);
-                              onToggleSection?.call(cat.id);
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                              child: Row(
-                                children: [
-                                  Icon(cat.icon, size: 16, color: Theme.of(context).colorScheme.onSurface),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    cat.label,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w400,
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          AnimatedSize(
-                            duration: const Duration(milliseconds: 220),
-                            curve: Curves.easeInOut,
-                            alignment: Alignment.topCenter,
-                            child: isExpanded
-                                ? _TaskSubMenu(items: subItems)
-                                : const SizedBox(width: double.infinity, height: 0),
-                          ),
-                        ],
-                      ),
-                    ),
+                  return _ExpandableSection(
+                    cat: cat,
+                    subItems: subItems,
+                    isExpanded: isExpanded,
+                    onToggle: () {
+                      onSelect(cat.id);
+                      onToggleSection?.call(cat.id);
+                    },
                   );
                 } else {
                   return Column(
@@ -418,53 +405,106 @@ class TaskMenuItem extends StatelessWidget {
   }
 }
 
-// ── Task submenu (expandable child items) ─────────────────────────────────────
+// ── Expandable section (Tasks for me / Tasks by me / My Requests) ────────────
 
-/// Rounded, light-gray container holding a section's child items.
-class _TaskSubMenu extends StatelessWidget {
-  final List<TaskSubItem> items;
+/// A sidebar section that has a header row (icon + label) and collapsible
+/// bullet child items below it — matching the reference image exactly.
+class _ExpandableSection extends StatelessWidget {
+  final TaskCategory cat;
+  final List<TaskSubItem> subItems;
+  final bool isExpanded;
+  final VoidCallback onToggle;
 
-  const _TaskSubMenu({required this.items});
+  const _ExpandableSection({
+    required this.cat,
+    required this.subItems,
+    required this.isExpanded,
+    required this.onToggle,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Column(
-      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final TaskSubItem item in items) _TaskSubMenuItem(item: item),
-        const SizedBox(height: 6),
+        // ── Divider above the section ────────────────────────────────
+        Divider(height: 1, thickness: 1, color: scheme.outlineVariant),
+
+        // ── Section header row ────────────────────────────────────────
+        InkWell(
+          onTap: onToggle,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Row(
+              children: [
+                Icon(cat.icon, size: 17, color: scheme.onSurface),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    cat.label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: scheme.onSurface,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Icon(
+                  isExpanded
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  size: 16,
+                  color: scheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // ── Animated sub-item list ────────────────────────────────────
+        AnimatedSize(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeInOut,
+          alignment: Alignment.topCenter,
+          child: isExpanded
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final item in subItems)
+                      _SectionSubItem(item: item),
+                    const SizedBox(height: 4),
+                  ],
+                )
+              : const SizedBox(width: double.infinity, height: 0),
+        ),
       ],
     );
   }
 }
 
-/// One child item: bullet, title and right-aligned count.
-///
-/// Individually tappable — will become a task filter / navigation target
-/// when connected to real data later.
-class _TaskSubMenuItem extends StatelessWidget {
+/// One bullet sub-item row: `•  Label          count`
+class _SectionSubItem extends StatelessWidget {
   final TaskSubItem item;
-
-  const _TaskSubMenuItem({required this.item});
+  const _SectionSubItem({required this.item});
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: () {},
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        padding: const EdgeInsets.only(left: 38, right: 14, top: 6, bottom: 6),
         child: Row(
           children: [
-            Padding(
-              padding: EdgeInsets.only(left: 4, right: 12),
-              child: Text(
-                '•',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Theme.of(context).colorScheme.onSurface,
-                  height: 1.0,
-                ),
+            Text(
+              '• ',
+              style: TextStyle(
+                fontSize: 13,
+                color: scheme.onSurfaceVariant,
+                height: 1.2,
               ),
             ),
             Expanded(
@@ -472,7 +512,7 @@ class _TaskSubMenuItem extends StatelessWidget {
                 item.title,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Theme.of(context).colorScheme.onSurface,
+                  color: scheme.onSurface,
                   fontWeight: FontWeight.w400,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -483,11 +523,10 @@ class _TaskSubMenuItem extends StatelessWidget {
               '${item.count}',
               style: TextStyle(
                 fontSize: 12,
-                color: Theme.of(context).colorScheme.onSurface,
+                color: scheme.onSurfaceVariant,
                 fontWeight: FontWeight.w400,
               ),
             ),
-            const SizedBox(width: 12),
           ],
         ),
       ),
@@ -640,12 +679,16 @@ class TaskContent extends StatelessWidget {
 
 class _TaskContent extends StatelessWidget {
   final TaskCategory category;
-  const _TaskContent({required this.category});
+  final ValueChanged<String>? onSubItemTap;
+  const _TaskContent({required this.category, this.onSubItemTap});
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final subItems = _kSubItems[category.id];
+
     return Container(
-      color: Theme.of(context).colorScheme.surface,
+      color: scheme.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -660,31 +703,92 @@ class _TaskContent extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Theme.of(context).colorScheme.onSurface,
+                    color: scheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'All Done',
+                  subItems != null ? '' : 'All Done',
                   style: TextStyle(
                     fontSize: 13,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: scheme.onSurfaceVariant,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
               ],
             ),
           ),
-          Divider(height: 1, thickness: 1, color: Theme.of(context).colorScheme.outlineVariant),
+          Divider(height: 1, thickness: 1, color: scheme.outlineVariant),
 
-          // ── Empty state ──────────────────────────────────────────────
+          // ── Sub-item list OR empty state ─────────────────────────────
           Expanded(
-            child: Center(
-              child: _TaskEmptyState(categoryLabel: category.label),
-            ),
+            child: subItems != null
+                ? _SubItemListView(items: subItems, scheme: scheme, onTap: onSubItemTap)
+                : Center(
+                    child: _TaskEmptyState(categoryLabel: category.label),
+                  ),
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── Sub-item list view (shown in content area on mobile) ─────────────────────
+
+class _SubItemListView extends StatelessWidget {
+  final List<TaskSubItem> items;
+  final ColorScheme scheme;
+  final ValueChanged<String>? onTap;
+
+  const _SubItemListView({required this.items, required this.scheme, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: items.length,
+      separatorBuilder: (_, _) =>
+          Divider(height: 1, color: scheme.outlineVariant, indent: 20, endIndent: 20),
+      itemBuilder: (context, i) {
+        final item = items[i];
+        return InkWell(
+          onTap: () => onTap?.call(item.title),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            child: Row(
+              children: [
+                Text(
+                  '• ',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: scheme.onSurfaceVariant,
+                    height: 1.2,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    item.title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: scheme.onSurface,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+                Text(
+                  '${item.count}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -735,6 +839,160 @@ class _TaskEmptyState extends StatelessWidget {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+// â”€â”€ Sub-item detail view (Active / Archived / Pending Requests â€¦) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+class _TaskSubItemDetail extends StatefulWidget {
+  final String title;
+  final VoidCallback onBack;
+
+  const _TaskSubItemDetail({required this.title, required this.onBack});
+
+  @override
+  State<_TaskSubItemDetail> createState() => _TaskSubItemDetailState();
+}
+
+class _TaskSubItemDetailState extends State<_TaskSubItemDetail> {
+  final TextEditingController _searchCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      color: scheme.surface,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Back arrow + title row
+                Row(
+                  children: [
+                    InkWell(
+                      onTap: widget.onBack,
+                      borderRadius: BorderRadius.circular(20),
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Icon(Icons.arrow_back_ios_new,
+                            size: 14, color: scheme.onSurface),
+                      ),
+                    ),
+                    Text(
+                      widget.title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: scheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                // "0 Task,  0 Unread" with colored counts
+                RichText(
+                  text: TextSpan(
+                    style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+                    children: const [
+                      TextSpan(
+                        text: '0',
+                        style: TextStyle(
+                            color: Color(0xFFE67E22), fontWeight: FontWeight.w600),
+                      ),
+                      TextSpan(text: ' Task,  '),
+                      TextSpan(
+                        text: '0',
+                        style: TextStyle(
+                            color: Color(0xFF2980B9), fontWeight: FontWeight.w600),
+                      ),
+                      TextSpan(text: ' Unread'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // â”€â”€ Search bar + filter button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 38,
+                    child: TextField(
+                      controller: _searchCtrl,
+                      style: TextStyle(fontSize: 13, color: scheme.onSurface),
+                      decoration: InputDecoration(
+                        hintText: 'Search',
+                        hintStyle: TextStyle(
+                            fontSize: 13, color: scheme.onSurfaceVariant),
+                        prefixIcon: Icon(Icons.search,
+                            size: 18, color: scheme.onSurfaceVariant),
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 0, horizontal: 12),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide:
+                              BorderSide(color: scheme.outlineVariant, width: 1),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide:
+                              BorderSide(color: scheme.outlineVariant, width: 1.2),
+                        ),
+                        filled: true,
+                        fillColor: scheme.surface,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: scheme.outlineVariant),
+                    borderRadius: BorderRadius.circular(8),
+                    color: scheme.surface,
+                  ),
+                  child: Icon(Icons.filter_list_outlined,
+                      size: 18, color: scheme.onSurfaceVariant),
+                ),
+              ],
+            ),
+          ),
+
+          // â”€â”€ No tasks found â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+            child: Text(
+              'No Tasks Found',
+              style: TextStyle(
+                fontSize: 13,
+                color: scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+
+          const Spacer(),
         ],
       ),
     );

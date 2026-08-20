@@ -124,17 +124,35 @@ class _MecoScaffoldState extends State<MecoScaffold> {
   @override
   void initState() {
     super.initState();
+    // Use the in-memory cache first for instant display, then confirm
+    // from persistent storage in case of an app restart.
+    _applyUser(Session.cachedUser);
     _loadUser();
   }
 
-  Future<void> _loadUser() async {
-    final DemoUser? user = await Session.currentUser();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Re-apply whenever the dependency tree changes (e.g., after navigation).
+    // The cache is always up-to-date so this is instant — no async needed.
+    _applyUser(Session.cachedUser);
+  }
+
+  void _applyUser(DemoUser? user) {
     if (!mounted) return;
     setState(() {
       _user = user;
       _visibleNotifications =
           NotificationService.getVisibleNotifications(user?.department);
     });
+  }
+
+  Future<void> _loadUser() async {
+    final DemoUser? user = await Session.currentUser();
+    // Also update the cache if it was populated from SharedPreferences
+    // (e.g., after an app cold-start before login is called).
+    if (user != null) Session.cachedUser = user;
+    _applyUser(user);
   }
 
   void _removeOverlays() {
@@ -292,7 +310,9 @@ class _MecoScaffoldState extends State<MecoScaffold> {
         actions: [
           IconButton(
             icon: Icon(Icons.check_circle_outline, color: scheme.onSurface),
-            onPressed: () {},
+            onPressed: () {
+              _navigate('My Tasks', () => const MyTasksScreen());
+            },
           ),
           IconButton(
             key: _notifKey,

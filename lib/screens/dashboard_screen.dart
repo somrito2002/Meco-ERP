@@ -16,18 +16,20 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  DemoUser? _user;
+  // Read from the synchronous cache immediately — no async delay.
+  DemoUser? get _user => Session.cachedUser;
 
   @override
   void initState() {
     super.initState();
-    _loadUser();
+    // Kick off a background confirm from SharedPreferences (cold-start safety).
+    _confirmUser();
   }
 
-  Future<void> _loadUser() async {
-    final DemoUser? user = await Session.currentUser();
-    if (!mounted) return;
-    setState(() => _user = user);
+  Future<void> _confirmUser() async {
+    final user = await Session.currentUser();
+    if (user != null && mounted) Session.cachedUser = user;
+    if (mounted) setState(() {});
   }
 
   void _handleCreate() {

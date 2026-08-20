@@ -81,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _handleLogin() {
+  void _handleLogin() async {
     final loginId = _loginIdController.text.trim();
     final password = _passwordController.text;
     final department = _selectedDepartmentNotifier.value;
@@ -95,8 +95,10 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (user != null) {
-      // Persist the session so the user stays logged in across restarts.
-      Session.save(user);
+      // Persist the session AND update the in-memory cache before navigating
+      // so the new screen reads the correct user instantly with no async delay.
+      await Session.save(user);
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(

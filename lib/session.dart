@@ -11,12 +11,19 @@ class Session {
   static const String _kNameKey = 'name';
   static const String _kUserIdKey = 'user_id';
 
+  /// In-memory synchronous cache — always up-to-date after login/logout.
+  /// Screens can read this instantly without any async call.
+  static DemoUser? cachedUser;
+
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_kLoggedInKey) ?? false;
   }
 
   static Future<void> save(DemoUser user) async {
+    // Update in-memory cache IMMEDIATELY (synchronous) so all widgets
+    // reading cachedUser get the new user without any async delay.
+    cachedUser = user;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_kLoggedInKey, true);
     await prefs.setString(_kLoginIdKey, user.loginId);
@@ -46,6 +53,8 @@ class Session {
   }
 
   static Future<void> clear() async {
+    // Clear the in-memory cache immediately.
+    cachedUser = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_kLoggedInKey);
     await prefs.remove(_kLoginIdKey);
