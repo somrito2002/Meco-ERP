@@ -9,6 +9,9 @@ import '../services/notification_service.dart';
 import '../session.dart';
 import '../theme.dart';
 import '../screens/dashboard_screen.dart' show DashboardScreen;
+import '../screens/libraries_screen.dart' show LibrariesScreen;
+import '../screens/manage_vendor_screen.dart';
+import '../screens/my_downloads_screen.dart' show MyDownloadsScreen;
 import '../screens/my_tasks_screen.dart' show MyTasksScreen;
 import 'meco_support_chat.dart';
 
@@ -408,19 +411,25 @@ class _MecoScaffoldState extends State<MecoScaffold> {
                     icon: Icons.bar_chart,
                     title: 'My Downloads',
                     isSelected: widget.currentRoute == 'My Downloads',
-                    onTap: () {},
+                    onTap: () {
+                      _navigate('My Downloads', () => const MyDownloadsScreen());
+                    },
                   ),
                   _DrawerItem(
                     icon: Icons.layers_outlined,
                     title: 'Libraries',
                     isSelected: widget.currentRoute == 'Libraries',
-                    onTap: () {},
+                    onTap: () {
+                      _navigate('Libraries', () => const LibrariesScreen());
+                    },
                   ),
                   _DrawerItem(
                     icon: Icons.store_mall_directory_outlined,
                     title: 'Manage Vendor',
                     isSelected: widget.currentRoute == 'Manage Vendor',
-                    onTap: () {},
+                    onTap: () {
+                      _navigate('Manage Vendor', () => const ManageVendorScreen());
+                    },
                   ),
                   _DrawerItem(
                     icon: Icons.person_outline,
