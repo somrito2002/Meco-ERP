@@ -201,7 +201,7 @@ class _MyVendorsTab extends StatelessWidget {
         alignment: Alignment.centerLeft,
         child: TextButton.icon(
           onPressed: () {},
-          style: TextButton.styleFrom(foregroundColor: Colors.red),
+          style: TextButton.styleFrom(foregroundColor: AppPalette.green),
           icon: const Icon(Icons.add, size: 20),
           label: const Text(
             'Add New Vendor',

@@ -801,45 +801,47 @@ class _TaskEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Illustrated empty state icon
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              shape: BoxShape.circle,
-              border: Border.all(color: Theme.of(context).colorScheme.outlineVariant, width: 1.5),
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Illustrated empty state icon
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                shape: BoxShape.circle,
+                border: Border.all(color: Theme.of(context).colorScheme.outlineVariant, width: 1.5),
+              ),
+              child: Icon(
+                Icons.task_alt,
+                size: 36,
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
             ),
-            child: Icon(
-              Icons.task_alt,
-              size: 36,
-              color: Theme.of(context).colorScheme.outlineVariant,
+            const SizedBox(height: 16),
+            Text(
+              'No ${categoryLabel.toLowerCase()} tasks',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No ${categoryLabel.toLowerCase()} tasks',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            const SizedBox(height: 8),
+            Text(
+              'When tasks are assigned, they will appear here.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'When tasks are assigned, they will appear here.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

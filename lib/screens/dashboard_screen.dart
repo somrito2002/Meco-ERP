@@ -55,7 +55,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 decoration: BoxDecoration(
                   color: scheme.surface,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: scheme.outlineVariant),
                 ),
               child: Padding(
                 padding: const EdgeInsets.all(32.0),

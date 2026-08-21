@@ -51,7 +51,6 @@ class _MyDownloadsScreenState extends State<MyDownloadsScreen> {
                   decoration: BoxDecoration(
                     color: scheme.surface,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: scheme.outlineVariant),
                   ),
                   child: Column(
                     children: [

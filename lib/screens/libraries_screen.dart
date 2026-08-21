@@ -424,49 +424,60 @@ class _AllElementsTabState extends State<_AllElementsTab> {
     final overlay = Overlay.of(context);
     
     _overlayEntry = OverlayEntry(
-      builder: (context) => Stack(
-        children: [
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _closePopup,
-              child: Container(color: Colors.transparent),
-            ),
+      builder: (context) {
+        final bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+        final Widget popup = Material(
+          color: Colors.transparent,
+          child: _ColumnSettingsPopup(
+            showBrand: _showBrand,
+            showItemCode: _showItemCode,
+            showCategory: _showCategory,
+            showItemType: _showItemType,
+            showServiceCharge: _showServiceCharge,
+            showDiscount: _showDiscount,
+            showHsn: _showHsn,
+            showGst: _showGst,
+            onApply: (brand, code, cat, type, svc, disc, hsn, gst) {
+              setState(() {
+                _showBrand = brand;
+                _showItemCode = code;
+                _showCategory = cat;
+                _showItemType = type;
+                _showServiceCharge = svc;
+                _showDiscount = disc;
+                _showHsn = hsn;
+                _showGst = gst;
+              });
+              _closePopup();
+            },
           ),
-          CompositedTransformFollower(
-            link: _settingsLink,
-            targetAnchor: Alignment.bottomRight,
-            followerAnchor: Alignment.topRight,
-            offset: const Offset(0, 8),
-            child: Material(
-              color: Colors.transparent,
-              child: _ColumnSettingsPopup(
-                showBrand: _showBrand,
-                showItemCode: _showItemCode,
-                showCategory: _showCategory,
-                showItemType: _showItemType,
-                showServiceCharge: _showServiceCharge,
-                showDiscount: _showDiscount,
-                showHsn: _showHsn,
-                showGst: _showGst,
-                onApply: (brand, code, cat, type, svc, disc, hsn, gst) {
-                  setState(() {
-                    _showBrand = brand;
-                    _showItemCode = code;
-                    _showCategory = cat;
-                    _showItemType = type;
-                    _showServiceCharge = svc;
-                    _showDiscount = disc;
-                    _showHsn = hsn;
-                    _showGst = gst;
-                  });
-                  _closePopup();
-                },
+        );
+
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _closePopup,
+                child: Container(color: Colors.transparent),
               ),
             ),
-          ),
-        ],
-      ),
+            if (isLandscape)
+              Align(
+                alignment: Alignment.center,
+                child: popup,
+              )
+            else
+              CompositedTransformFollower(
+                link: _settingsLink,
+                targetAnchor: Alignment.bottomRight,
+                followerAnchor: Alignment.topRight,
+                offset: const Offset(0, 8),
+                child: popup,
+              ),
+          ],
+        );
+      },
     );
 
     overlay.insert(_overlayEntry!);
@@ -892,49 +903,60 @@ class _AllAssembliesTabState extends State<_AllAssembliesTab> {
     final overlay = Overlay.of(context);
     
     _overlayEntry = OverlayEntry(
-      builder: (context) => Stack(
-        children: [
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _closePopup,
-              child: Container(color: Colors.transparent),
-            ),
+      builder: (context) {
+        final bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+        final Widget popup = Material(
+          color: Colors.transparent,
+          child: _ColumnSettingsPopup(
+            showBrand: _showBrand,
+            showItemCode: _showItemCode,
+            showCategory: _showCategory,
+            showItemType: _showItemType,
+            showServiceCharge: _showServiceCharge,
+            showDiscount: _showDiscount,
+            showHsn: _showHsn,
+            showGst: _showGst,
+            onApply: (brand, code, cat, type, svc, disc, hsn, gst) {
+              setState(() {
+                _showBrand = brand;
+                _showItemCode = code;
+                _showCategory = cat;
+                _showItemType = type;
+                _showServiceCharge = svc;
+                _showDiscount = disc;
+                _showHsn = hsn;
+                _showGst = gst;
+              });
+              _closePopup();
+            },
           ),
-          CompositedTransformFollower(
-            link: _settingsLink,
-            targetAnchor: Alignment.bottomRight,
-            followerAnchor: Alignment.topRight,
-            offset: const Offset(0, 8),
-            child: Material(
-              color: Colors.transparent,
-              child: _ColumnSettingsPopup(
-                showBrand: _showBrand,
-                showItemCode: _showItemCode,
-                showCategory: _showCategory,
-                showItemType: _showItemType,
-                showServiceCharge: _showServiceCharge,
-                showDiscount: _showDiscount,
-                showHsn: _showHsn,
-                showGst: _showGst,
-                onApply: (brand, code, cat, type, svc, disc, hsn, gst) {
-                  setState(() {
-                    _showBrand = brand;
-                    _showItemCode = code;
-                    _showCategory = cat;
-                    _showItemType = type;
-                    _showServiceCharge = svc;
-                    _showDiscount = disc;
-                    _showHsn = hsn;
-                    _showGst = gst;
-                  });
-                  _closePopup();
-                },
+        );
+
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _closePopup,
+                child: Container(color: Colors.transparent),
               ),
             ),
-          ),
-        ],
-      ),
+            if (isLandscape)
+              Align(
+                alignment: Alignment.center,
+                child: popup,
+              )
+            else
+              CompositedTransformFollower(
+                link: _settingsLink,
+                targetAnchor: Alignment.bottomRight,
+                followerAnchor: Alignment.topRight,
+                offset: const Offset(0, 8),
+                child: popup,
+              ),
+          ],
+        );
+      },
     );
 
     overlay.insert(_overlayEntry!);
