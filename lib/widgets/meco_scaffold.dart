@@ -545,7 +545,7 @@ class _DrawerItem extends StatelessWidget {
   }
 }
 
-class _NotificationPanel extends StatelessWidget {
+class _NotificationPanel extends StatefulWidget {
   final List<_NotifData> notifications;
   final VoidCallback onDismiss;
   final VoidCallback onMarkAllRead;
@@ -561,11 +561,28 @@ class _NotificationPanel extends StatelessWidget {
   });
 
   @override
+  State<_NotificationPanel> createState() => _NotificationPanelState();
+}
+
+class _NotificationPanelState extends State<_NotificationPanel> {
+  bool _onlyShowUnread = false;
+  int _selectedTab = 0; // 0 for All Notifications, 1 for Mentions
+
+  @override
   Widget build(BuildContext context) {
     final ColorScheme scheme = Theme.of(context).colorScheme;
+    
+    // Filter logic for mentions
+    final items = widget.notifications.where((n) {
+      if (_selectedTab == 1) {
+        return n.title.contains('@') || n.subtitle.contains('@');
+      }
+      return true;
+    }).toList();
+
     return Container(
-      width: width,
-      constraints: BoxConstraints(maxHeight: maxHeight),
+      width: widget.width,
+      constraints: BoxConstraints(maxHeight: widget.maxHeight),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: scheme.surface,
@@ -582,51 +599,141 @@ class _NotificationPanel extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Row 1: Notifications & Switch
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Flexible(
-                  child: Text(
-                    'Notifications',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
-                      color: scheme.onSurface,
-                    ),
+                Text(
+                  'Notifications',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    color: scheme.onSurface,
                   ),
                 ),
-                const SizedBox(width: 8),
-                if (notifications.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppPalette.green,
-                      borderRadius: BorderRadius.circular(10),
+                Row(
+                  children: [
+                    Text(
+                      'Only show unread',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: scheme.onSurfaceVariant,
+                      ),
                     ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      height: 24,
+                      width: 40,
+                      child: FittedBox(
+                        fit: BoxFit.fill,
+                        child: Switch(
+                          value: _onlyShowUnread,
+                          activeColor: AppPalette.green,
+                          onChanged: (val) {
+                            setState(() {
+                              _onlyShowUnread = val;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          
+          // Row 2: Tabs
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                InkWell(
+                  onTap: () => setState(() => _selectedTab = 0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: _selectedTab == 0
+                          ? const Border(bottom: BorderSide(color: AppPalette.green, width: 2.0))
+                          : null,
+                    ),
+                    padding: const EdgeInsets.only(bottom: 8),
                     child: Text(
-                      '${notifications.length} new',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
+                      'All Notifications',
+                      style: TextStyle(
+                        fontWeight: _selectedTab == 0 ? FontWeight.w600 : FontWeight.w400,
+                        fontSize: 13,
+                        color: _selectedTab == 0 ? scheme.onSurface : scheme.onSurfaceVariant,
                       ),
                     ),
                   ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12).copyWith(bottom: 8),
+                  child: Text('|', style: TextStyle(color: scheme.outlineVariant, fontSize: 13)),
+                ),
+                InkWell(
+                  onTap: () => setState(() => _selectedTab = 1),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: _selectedTab == 1
+                          ? const Border(bottom: BorderSide(color: AppPalette.green, width: 2.0))
+                          : null,
+                    ),
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      'Mentions',
+                      style: TextStyle(
+                        fontWeight: _selectedTab == 1 ? FontWeight.w600 : FontWeight.w400,
+                        fontSize: 13,
+                        color: _selectedTab == 1 ? scheme.onSurface : scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(height: 1, thickness: 1, color: scheme.outlineVariant),
+          
+          // Row 3: Latest & Mark all read
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Latest',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 13,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+                InkWell(
+                  onTap: widget.onMarkAllRead,
+                  child: Text(
+                    'Mark all read',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 13,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
           Divider(height: 1, thickness: 1, color: scheme.outlineVariant),
 
-          if (notifications.isEmpty)
+          // List content
+          if (items.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 16),
               child: Center(
                 child: Text(
-                  'NO recent Notification',
+                  _selectedTab == 1 ? 'NO mentions' : 'NO recent Notification',
                   style: TextStyle(
                     color: scheme.onSurfaceVariant,
                     fontSize: 14,
@@ -635,34 +742,15 @@ class _NotificationPanel extends StatelessWidget {
                 ),
               ),
             )
-          else ...[
+          else
             Flexible(
               child: ListView.builder(
                 shrinkWrap: true,
                 padding: EdgeInsets.zero,
-                itemCount: notifications.length,
-                itemBuilder: (_, i) => _NotifTile(data: notifications[i]),
+                itemCount: items.length,
+                itemBuilder: (_, i) => _NotifTile(data: items[i]),
               ),
             ),
-            Divider(height: 1, thickness: 1, color: scheme.outlineVariant),
-            InkWell(
-              onTap: onMarkAllRead,
-              child: const Padding(
-                padding: EdgeInsets.fromLTRB(16, 12, 16, 12),
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    'Mark read',
-                    style: TextStyle(
-                      color: AppPalette.green,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );
