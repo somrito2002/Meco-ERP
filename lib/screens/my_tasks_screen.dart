@@ -66,9 +66,9 @@ const Map<String, List<TaskSubItem>> _kSubItems = {
     TaskSubItem(title: 'Archived', count: 0),
   ],
   'my_requests': [
-    TaskSubItem(title: 'Pending Requests', count: 1),
+    TaskSubItem(title: 'Pending Requests', count: 0),
     TaskSubItem(title: 'Draft Requests', count: 0),
-    TaskSubItem(title: 'Archived Requests', count: 22),
+    TaskSubItem(title: 'Archived Requests', count: 0),
   ],
 };
 

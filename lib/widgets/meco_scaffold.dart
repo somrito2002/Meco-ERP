@@ -233,8 +233,12 @@ class _MecoScaffoldState extends State<MecoScaffold> {
     final RenderBox box =
         _avatarKey.currentContext!.findRenderObject() as RenderBox;
     final Offset pos = box.localToGlobal(Offset.zero);
-    final double right =
-        MediaQuery.of(context).size.width - pos.dx - box.size.width;
+    final double screenWidth = MediaQuery.sizeOf(context).width;
+    final double screenHeight = MediaQuery.sizeOf(context).height;
+    final double right = screenWidth - pos.dx - box.size.width;
+    
+    final double top = pos.dy + box.size.height + 4;
+    final double maxHeight = math.max(0.0, screenHeight - top - 12);
 
     _profileOverlay = OverlayEntry(builder: (_) {
       return GestureDetector(
@@ -252,6 +256,7 @@ class _MecoScaffoldState extends State<MecoScaffold> {
                   onDismiss: _removeOverlays,
                   onLogout: _handleLogout,
                   user: _user,
+                  maxHeight: maxHeight,
                 ),
               ),
             ),
@@ -382,9 +387,13 @@ class _MecoScaffoldState extends State<MecoScaffold> {
               ),
             ),
             Expanded(
-              child: ListView(
+              child: CustomScrollView(
+                slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                children: [
+                child: Column(
+                  children: [
                   _DrawerItem(
                     icon: Icons.show_chart,
                     title: 'Insights',
@@ -437,37 +446,49 @@ class _MecoScaffoldState extends State<MecoScaffold> {
                     isSelected: widget.currentRoute == 'Manage Clients',
                     onTap: () {},
                   ),
+                      ],
+                    ),
+                  ),
+            ),
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  const Divider(height: 1),
+                  SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                      child: Column(
+                        children: [
+                          _DrawerItem(
+                            icon: Icons.help_outline,
+                            title: 'Help Center',
+                            onTap: () {},
+                          ),
+                          _DrawerItem(
+                            icon: Icons.support_agent,
+                            iconColor: AppPalette.green,
+                            title: 'Customer Support',
+                            onTap: () {
+                              Navigator.of(context).pop();
+                              showModalBottomSheet<void>(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (_) => const MecoSupportChat(),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-            const Divider(height: 1),
-            SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-                child: Column(
-                  children: [
-                    _DrawerItem(
-                      icon: Icons.help_outline,
-                      title: 'Help Center',
-                      onTap: () {},
-                    ),
-                    _DrawerItem(
-                      icon: Icons.support_agent,
-                      iconColor: AppPalette.green,
-                      title: 'Customer Support',
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        showModalBottomSheet<void>(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (_) => const MecoSupportChat(),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                ],
               ),
             ),
           ],
@@ -713,11 +734,13 @@ class _ProfileDropdown extends StatelessWidget {
   final VoidCallback onDismiss;
   final VoidCallback onLogout;
   final DemoUser? user;
+  final double maxHeight;
 
   const _ProfileDropdown({
     required this.onDismiss,
     required this.onLogout,
     required this.user,
+    required this.maxHeight,
   });
 
   @override
@@ -742,94 +765,99 @@ class _ProfileDropdown extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: AppPalette.profileAvatar,
-                  child: Text(
-                    getLoginIdInitial(loginId),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Logged-in as',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: scheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w500,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: AppPalette.profileAvatar,
+                      child: Text(
+                        getLoginIdInitial(loginId),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Logged-in as',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: scheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            name,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: scheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(height: 1, thickness: 1, color: scheme.outlineVariant),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _ProfileInfoRow(label: 'Department', value: department),
+                    const SizedBox(height: 8),
+                    _ProfileInfoRow(label: 'User ID', value: userId),
+                    const SizedBox(height: 8),
+                    _ProfileInfoRow(label: 'Location', value: location),
+                  ],
+                ),
+              ),
+              Divider(height: 1, thickness: 1, color: scheme.outlineVariant),
+              InkWell(
+                onTap: onLogout,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout, size: 18, color: Colors.red.shade400),
+                      const SizedBox(width: 12),
                       Text(
-                        name,
+                        'Logout',
                         style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: scheme.onSurface,
+                          color: Colors.red.shade400,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
-          Divider(height: 1, thickness: 1, color: scheme.outlineVariant),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _ProfileInfoRow(label: 'Department', value: department),
-                const SizedBox(height: 8),
-                _ProfileInfoRow(label: 'User ID', value: userId),
-                const SizedBox(height: 8),
-                _ProfileInfoRow(label: 'Location', value: location),
-              ],
-            ),
-          ),
-          Divider(height: 1, thickness: 1, color: scheme.outlineVariant),
-          InkWell(
-            onTap: onLogout,
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(12),
-              bottomRight: Radius.circular(12),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  Icon(Icons.logout, size: 18, color: Colors.red.shade400),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Logout',
-                    style: TextStyle(
-                      color: Colors.red.shade400,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

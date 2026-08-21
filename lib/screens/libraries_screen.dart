@@ -55,7 +55,7 @@ class _LibrariesScreenState extends State<LibrariesScreen>
       currentRoute: 'Libraries',
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -153,7 +153,7 @@ class _ElementLibrariesTab extends StatelessWidget {
                 // scrollable on narrow screens) and center the message in
                 // the visible area below it.
                 if (libraries.isEmpty) {
-                  return Stack(
+                  return Column(
                     children: [
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
@@ -164,20 +164,21 @@ class _ElementLibrariesTab extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               _buildHeaderRow(context),
-                              Divider(
-                                  height: 1, thickness: 1, color: dividerColor),
+                              Divider(height: 1, thickness: 1, color: dividerColor),
                             ],
                           ),
                         ),
                       ),
-                      Center(
-                        child: Text(
-                          'No Libraries created',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: scheme.onSurfaceVariant,
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            'No Libraries created',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: scheme.onSurfaceVariant,
+                            ),
                           ),
                         ),
                       ),
@@ -1300,6 +1301,9 @@ class _ColumnSettingsPopupState extends State<_ColumnSettingsPopup> {
     
     return Container(
       width: 240,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height - 120, // Leave room for padding/keyboard
+      ),
       decoration: BoxDecoration(
         color: scheme.surface,
         borderRadius: BorderRadius.circular(12),
@@ -1328,20 +1332,24 @@ class _ColumnSettingsPopupState extends State<_ColumnSettingsPopup> {
             ),
           ),
           Divider(height: 1, thickness: 1, color: dividerColor),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildToggle('Brand/Make', _brand, (v) => setState(() => _brand = v)),
-                _buildToggle('Item Code', _code, (v) => setState(() => _code = v)),
-                _buildToggle('Category', _cat, (v) => setState(() => _cat = v)),
-                _buildToggle('Item Type', _type, (v) => setState(() => _type = v)),
-                _buildToggle('Service Charge %', _svc, (v) => setState(() => _svc = v)),
-                _buildToggle('Discount %', _disc, (v) => setState(() => _disc = v)),
-                _buildToggle('HSN', _hsn, (v) => setState(() => _hsn = v)),
-                _buildToggle('GST %', _gst, (v) => setState(() => _gst = v)),
-              ],
+          Flexible(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 160),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildToggle('Brand/Make', _brand, (v) => setState(() => _brand = v)),
+                    _buildToggle('Item Code', _code, (v) => setState(() => _code = v)),
+                    _buildToggle('Category', _cat, (v) => setState(() => _cat = v)),
+                    _buildToggle('Item Type', _type, (v) => setState(() => _type = v)),
+                    _buildToggle('Service Charge %', _svc, (v) => setState(() => _svc = v)),
+                    _buildToggle('Discount %', _disc, (v) => setState(() => _disc = v)),
+                    _buildToggle('HSN', _hsn, (v) => setState(() => _hsn = v)),
+                    _buildToggle('GST %', _gst, (v) => setState(() => _gst = v)),
+                  ],
+                ),
+              ),
             ),
           ),
           Divider(height: 1, thickness: 1, color: dividerColor),

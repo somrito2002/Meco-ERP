@@ -40,7 +40,7 @@ class _ManageVendorScreenState extends State<ManageVendorScreen>
       currentRoute: 'Manage Vendor',
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -122,7 +122,7 @@ class _MyVendorsTab extends StatelessWidget {
                     math.max(_minTableWidth, constraints.maxWidth);
 
                 if (vendors.isEmpty) {
-                  return Stack(
+                  return Column(
                     children: [
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
@@ -142,14 +142,16 @@ class _MyVendorsTab extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Center(
-                        child: Text(
-                          'No Vendors found',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: scheme.onSurfaceVariant,
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            'No Vendors found',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: scheme.onSurfaceVariant,
+                            ),
                           ),
                         ),
                       ),

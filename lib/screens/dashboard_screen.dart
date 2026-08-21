@@ -47,15 +47,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       currentRoute: 'Insights',
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
           child: Center(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 500),
-              decoration: BoxDecoration(
-                color: scheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: scheme.outlineVariant),
-              ),
+            child: SingleChildScrollView(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 500),
+                decoration: BoxDecoration(
+                  color: scheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: scheme.outlineVariant),
+                ),
               child: Padding(
                 padding: const EdgeInsets.all(32.0),
                 child: Column(
@@ -93,6 +94,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                   ],
+                ),
                 ),
               ),
             ),
