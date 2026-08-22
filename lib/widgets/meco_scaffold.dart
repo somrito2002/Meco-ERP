@@ -10,6 +10,7 @@ import '../session.dart';
 import '../theme.dart';
 import '../screens/dashboard_screen.dart' show DashboardScreen;
 import '../screens/libraries_screen.dart' show LibrariesScreen;
+import '../screens/manage_client_screen.dart';
 import '../screens/manage_vendor_screen.dart';
 import '../screens/my_downloads_screen.dart' show MyDownloadsScreen;
 import '../screens/my_tasks_screen.dart' show MyTasksScreen;
@@ -444,7 +445,9 @@ class _MecoScaffoldState extends State<MecoScaffold> {
                     icon: Icons.person_outline,
                     title: 'Manage Clients',
                     isSelected: widget.currentRoute == 'Manage Clients',
-                    onTap: () {},
+                    onTap: () {
+                      _navigate('Manage Clients', () => const ManageClientScreen());
+                    },
                   ),
                       ],
                     ),
